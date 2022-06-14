@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use App\Models\CustomerType;
+use App\Models\State;
 use App\Models\User;
 use App\Models\Vendor;
 use Illuminate\Http\Request;
@@ -20,12 +22,12 @@ class CustomerController extends Controller
         }else{
 
             //real code
-            //$vendor_id = Vendor::where('user_id', $user->id)->first();
+            $vendor_id = Vendor::where('user_id', $user->id)->first();
 
             //debug code
-            $vendor_id = 2;
+            $id = $vendor_id ? $vendor_id : 10;
 
-            $customers = Customer::where('vendor_id', $vendor_id)->get();
+            $customers = Customer::where('vendor_id', $id)->get();
 
         }
 
@@ -40,9 +42,7 @@ class CustomerController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'name'=> 'required'
-        ]);
+        $request->except(['id']);
 
         return Customer::create($request->all());
     }
@@ -68,13 +68,31 @@ class CustomerController extends Controller
     public function showCustomer($id)
     {
         $customer = Customer::find($id);
+        $category = CustomerType::where('id', $customer->type_id)->first();
+        $categoryName = $category ? $category->type : '';
+
+        $vendor = Vendor::where('id', $customer->vendor_id)->first();
+        $user = $vendor->user()->first();
+
+        $state = State::where('id', $customer->state_id)->first();
 
         $data = [
             'code' => 200,
             'status' => 'success',
-            'customer' => $customer
+            'customer' => $customer,
+            'category' => $categoryName,
+            'asesor' => $user,
+            'state' => $state ? $state->state_name : ''
         ];
 
         return response()->json($data, $data['code']);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $customer = Customer::find($id);
+        $customer->update($request->all());
+
+        return $customer;
     }
 }

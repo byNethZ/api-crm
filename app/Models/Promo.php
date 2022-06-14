@@ -15,7 +15,8 @@ class Promo extends Model
         'phone',
         'email',
         'gift',
-        'asesor'
+        'asesor',
+        'delivered'
     ];
 
     use HasFactory;

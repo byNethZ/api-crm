@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\ProductCategory;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
@@ -41,7 +42,16 @@ class ProductController extends Controller
      */
     public function show($id)
     {
-        return Product::find($id);
+        $product = Product::find($id);
+        $category = ProductCategory::where('id', $product->category_id)->first();
+
+        $data = [
+            'code' => 201,
+            'product' => $product,
+            'category' => $category->category
+        ];
+
+        return response()->json($data, $data['code']);
     }
 
     /**

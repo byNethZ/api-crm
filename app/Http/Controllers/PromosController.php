@@ -7,6 +7,11 @@ use Illuminate\Http\Request;
 
 class PromosController extends Controller
 {
+    public function index()
+    {
+        return Promo::all();
+    }
+
     public function save(Request $request){
 
         $response = [];
@@ -29,7 +34,8 @@ class PromosController extends Controller
                 'phone' => $fields['phone'],
                 'email' => $fields['email'],
                 'gift' => $fields['gift'],
-                'asesor' => $fields['asesor']
+                'asesor' => $fields['asesor'],
+                'delivered' => 0
             ]);
 
             $response = [

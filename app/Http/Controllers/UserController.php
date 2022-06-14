@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Departament;
 use App\Models\User;
 use App\Models\Vendor;
 use Illuminate\Http\Request;
@@ -11,7 +12,7 @@ use Illuminate\Support\Facades\Hash;
 class UserController extends Controller
 {
     public function index(){
-        return User::all();
+        return User::with('departament')->get();
     }
 
     public function login(Request $request){
@@ -86,6 +87,29 @@ class UserController extends Controller
         else{
             return response()->json(['message' => 'Invalid token'], 200);
         }
+    }
+
+    public function show($id)
+    {
+        $user = User::find($id);
+        $departament = $user->departament()->get();
+        //$category = userCategory::where('id', $product->category_id)->first();
+
+        $data = [
+            'code' => 201,
+            'user' => $user,
+            'departament' => $departament ? $departament[0]->name : null
+        ];
+
+        return response()->json($data, $data['code']);
+    }
+
+    public function delete($id){
+        return User::destroy($id);
+    }
+
+    public function indexDepartament(){
+        return Departament::all();
     }
 
 }

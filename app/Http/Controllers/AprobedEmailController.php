@@ -20,6 +20,7 @@ class AprobedEmailController extends Controller
         $aprobedEmail = new AprobedEmail();
 
         $aprobedEmail->customer = $request->input('restaurant');
+        $aprobedEmail->customer_id = 0;
         $aprobedEmail->user_id = $request->input('user_id');
         $aprobedEmail->urldropbox = $request->input('urlDropbox');
         $aprobedEmail->aprobed = 0;
