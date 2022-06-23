@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Promo;
+use App\Models\Ruleta;
 use Illuminate\Http\Request;
 
 class PromosController extends Controller
@@ -29,6 +30,54 @@ class PromosController extends Controller
 
         if(!$promo){
             $promo = Promo::create([
+                'name' => $fields['name'],
+                'lastname' => $fields['lastname'],
+                'phone' => $fields['phone'],
+                'email' => $fields['email'],
+                'gift' => $fields['gift'],
+                'asesor' => $fields['asesor'],
+                'delivered' => 0
+            ]);
+
+            $response = [
+                'code' => 201,
+                'promo' => $promo
+            ];
+
+            return response($response, $response['code']);
+        }
+        $response = [
+            'code' => 202,
+            'promo' => $promo
+        ];
+
+        return response($response, $response['code']);
+    }
+
+    //Ruleta
+
+    public function indexRuleta()
+    {
+        return Ruleta::all();
+    }
+
+    public function saveRuleta(Request $request){
+
+        $response = [];
+
+        $fields = $request->validate([
+            'name' => 'string',
+            'lastname' => 'string',
+            'phone' => 'string',
+            'email' => 'email|string',
+            'gift' => 'string',
+            'asesor' => 'string'
+        ]);
+
+        $promo = Ruleta::where('email', $fields['email'])->first();
+
+        if(!$promo){
+            $promo = Ruleta::create([
                 'name' => $fields['name'],
                 'lastname' => $fields['lastname'],
                 'phone' => $fields['phone'],

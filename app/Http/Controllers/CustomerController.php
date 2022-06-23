@@ -95,4 +95,55 @@ class CustomerController extends Controller
 
         return $customer;
     }
+
+    public function getDataByToken($token){
+        $customer = Customer::where('token', '=', $token)->first();
+        $state = State::where('id', $customer->state_id)->first();
+        $customer->bio = '';
+
+        if($customer){
+            $data = [
+                'code' => 201,
+                'customer' => $customer,
+                'state' => $state ? $state->state_name : ''
+            ];
+        } else{
+            $data = [
+                'code' => 404,
+                'message' => 'Customer not found'
+            ];
+        }
+
+        return response()->json($data, $data['code']);
+    }
+
+    public function savePreferences(Request $request, $token){
+        $customer = Customer::where('token', '=', $token)->first();
+
+        $isUpdated = $customer->update(array(
+            'color' => $request['color'],
+            'place' => $request['place'],
+            'hobby' => $request['hobby'],
+            'movie' => $request['movie'],
+            'music' => $request['music'],
+            'birthplace' => $request['birthplace'],
+            'sport' => $request['sport'],
+            'business_number' => $request['business_number'],
+        ));
+
+        if($isUpdated){
+            $customerUpdated = $customer = Customer::where('token', '=', $token)->first();
+            $data = [
+                'code' => 201,
+                'customerUpdated' => $customerUpdated
+            ];
+        } else{
+            $data = [
+                'code' => 400,
+                'message' => 'Customer no updated'
+            ];
+        }
+
+        return response()->json($data, $data['code']);
+    }
 }

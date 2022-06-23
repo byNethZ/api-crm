@@ -57,6 +57,7 @@ Route::group(['middleware' => ["auth:sanctum"]], function(){
     Route::get('/vendor/{id}', [VendorController::class, 'show']);
     //promos
     Route::get('/promos', [PromosController::class, 'index']);
+    Route::get('/ruleta', [PromosController::class, 'indexRuleta']);
 
 
     //CREATE ROUTES
@@ -65,7 +66,10 @@ Route::group(['middleware' => ["auth:sanctum"]], function(){
     Route::post('/logout', [UserController::class, 'logout']);
     //customer
     Route::post('/customer', [CustomerController::class, 'store']);
-
+    //user
+    Route::post('/user', [UserController::class, 'store']);
+    //link
+    Route::post('/create-checklist', [AprobedEmailController::class, 'create']);
 
     //DELETE ROUTES
     //links
@@ -83,9 +87,13 @@ Route::group(['middleware' => ["auth:sanctum"]], function(){
     Route::put('/users/{id}', [UserController::class, 'update']);
     //customer
     Route::put('/customer/{id}', [CustomerController::class, 'update']);
+    //users
+    Route::put('/edit-user/{id}', [UserController::class, 'update']);
+    //password user
+    Route::put('/password/{id}', [UserController::class, 'resetPass']);
 });
 
-
+//Public routes
 //checklist routes
 Route::post('/generate-checklist', [AprobedEmailController::class, 'generate']);
 Route::post('/create-checklist', [AprobedEmailController::class, 'create']);
@@ -95,7 +103,12 @@ Route::get('/all-checklist/{id}', [AprobedEmailController::class, 'show']);
 
 //promos for customer ruleta
 Route::post('/promo-gift', [PromosController::class, 'save']);
+Route::post('/ruleta', [PromosController::class, 'saveRuleta']);
 
 //states
 Route::get('/states/{country}', [StatesController::class, 'statesByCountry']);
 Route::get('/states', [StatesController::class, 'index']);
+
+//customer
+Route::get('/customerToken/{token}', [CustomerController::class, 'getDataByToken']);
+Route::post('/customerToken/{token}', [CustomerController::class, 'savePreferences']);

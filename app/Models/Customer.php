@@ -26,6 +26,18 @@ class Customer extends Model
         'vendor_id',
         'level',
         'type_id',
+        'color',
+        'place',
+        'hobby',
+        'movie',
+        'music',
+        'bio',
+        'birthplace',
+        'sport',
+        'business_number',
+        'field_1',
+        'field_2',
+        'field_3',
         'token'
     ];
 

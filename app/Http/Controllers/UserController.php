@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Customer;
 use App\Models\Departament;
 use App\Models\User;
 use App\Models\Vendor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
@@ -59,11 +61,15 @@ class UserController extends Controller
     }
 
     public function resetPass($id, Request $request){
-        $request['password'] = Hash::make($request['password']);
+        $password = Hash::make($request['password']);
 
-        $user = User::find($id)->update(array('password' => $request['password']));
+        $user = User::find($id)->update(array('password' => $password));
+        $data = [
+            'code' => 201,
+            'user' => $user
+        ];
 
-        return response()->json($request, 200);
+        return response()->json($data, $data['code']);
 
     }
 
@@ -105,11 +111,46 @@ class UserController extends Controller
     }
 
     public function delete($id){
-        return User::destroy($id);
+
+        $user = User::where('id', $id)->first();
+
+        if($user->departament_id == 4 || $user->departament_alt_id == 4 ){
+            $vendor = Vendor::where('user_id', $id)->first();
+            $customers = Customer::where('vendor_id', $vendor->id)->get();
+             if(count($customers) !== 0){
+
+                DB::table('customers')->where('vendor_id', $vendor->id)->update(array('vendor_id' => 10));
+             }
+            $user->delete();
+            $vendor->delete();
+            $data = [
+                'code' => 201,
+                'user' => $user,
+                'vendor' => $vendor ? $vendor : null,
+            ];
+
+            return response()->json($data, $data['code']);
+        }
+
+        $user->delete();
+
+        $data = [
+            'code' => 201,
+            'user' => $user,
+        ];
+        return response()->json($data, $data['code']);
     }
 
     public function indexDepartament(){
         return Departament::all();
+    }
+
+    public function store(Request $request){
+
+        $request->except(['id']);
+        $request['password'] = Hash::make($request['password']);
+
+        return User::create($request->all());
     }
 
 }
