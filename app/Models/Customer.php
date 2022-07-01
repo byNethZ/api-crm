@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Customer extends Model
 {
+    use HasFactory;
+
     protected $table = 'customers';
 
     protected $fillable = [
@@ -43,5 +45,8 @@ class Customer extends Model
 
     protected $guarded = ['id'];
 
-    use HasFactory;
+    public function state(){
+        return $this->hasOne(State::class, 'state_id');
+    }
+
 }

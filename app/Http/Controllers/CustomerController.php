@@ -25,7 +25,7 @@ class CustomerController extends Controller
             $vendor_id = Vendor::where('user_id', $user->id)->first();
 
             //debug code
-            $id = $vendor_id ? $vendor_id : 10;
+            $id = $vendor_id ? $vendor_id->id : 10;
 
             $customers = Customer::where('vendor_id', $id)->get();
 

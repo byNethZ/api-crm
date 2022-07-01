@@ -4,6 +4,8 @@ use App\Http\Controllers\AprobedEmailController;
 use App\Http\Controllers\CatalogueController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerTypeController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FotographyController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PromosController;
 use App\Http\Controllers\StatesController;
@@ -78,6 +80,8 @@ Route::group(['middleware' => ["auth:sanctum"]], function(){
     Route::delete('/delete-customer/{id}', [CustomerController::class, 'destroy']);
     //User
     Route::delete('/delete-user/{id}', [UserController::class, 'delete']);
+    //fotographies
+    Route::delete('/contract-fotography/{id}', [FotographyController::class, 'destroy']);
 
 
     //EDIT ROUTES
@@ -91,6 +95,10 @@ Route::group(['middleware' => ["auth:sanctum"]], function(){
     Route::put('/edit-user/{id}', [UserController::class, 'update']);
     //password user
     Route::put('/password/{id}', [UserController::class, 'resetPass']);
+
+    //DASHBOARD
+    //Sales
+    Route::get('/dashboard/sales', [DashboardController::class, 'salesDashboard']);
 });
 
 //Public routes
@@ -112,3 +120,7 @@ Route::get('/states', [StatesController::class, 'index']);
 //customer
 Route::get('/customerToken/{token}', [CustomerController::class, 'getDataByToken']);
 Route::post('/customerToken/{token}', [CustomerController::class, 'savePreferences']);
+
+//fotography
+Route::post('/contract-fotography', [FotographyController::class, 'store']);
+Route::get('/contract-fotography', [FotographyController::class, 'index']);

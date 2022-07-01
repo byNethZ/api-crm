@@ -43,7 +43,7 @@ class UserController extends Controller
                 'token_type' => 'Bearer',
                 'name' => $user->name,
                 'id' => $user->id,
-                'vendor_id' => $vendor_id,
+                'vendor_id' => $vendor_id->id,
                 'role_id' => $user->role_id,
                 'departament_id' => $user->departament_id,
                 'departament_alt_id' => $user->departament_alt_id,
