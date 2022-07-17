@@ -20,7 +20,7 @@ class DashboardController extends Controller
             $countByState = DB::table('customers')
             ->where('vendor_id', $vendor_id->id)
             ->join('states', 'states.id', '=', 'customers.state_id')
-            ->select('state_id', DB::raw('count(*) as total'), 'states.state_name')
+            ->select('state_id', DB::raw('count(*) as total'), 'states.state_name', 'states.lat', 'states.lng')
             ->groupBy('state_id')
             ->get();
 
@@ -31,20 +31,31 @@ class DashboardController extends Controller
             ->groupBy('type_id')
             ->get();
 
+            $customersByStatus = DB::table('customers')
+            ->where('vendor_id', $vendor_id->id)
+            ->select('status', DB::raw('count(*) as total'))
+            ->groupBy('status')
+            ->get();
+
             $message = $vendor_id;
         } else {
 
 
             $countByState = DB::table('customers')
             ->join('states', 'states.id', '=', 'customers.state_id')
-            ->select('state_id', DB::raw('count(*) as total'), 'states.state_name')
+            ->select('state_id', DB::raw('count(*) as total'), 'states.state_name', 'states.lat', 'states.lng')
             ->groupBy('state_id')
             ->get();
 
             $countByCategory = DB::table('customers')
             ->join('customer_types', 'customer_types.id', '=', 'customers.type_id')
-            ->select('type_id', DB::raw('count(*) as total'), 'customer_types.type')
+            ->select('type_id', DB::raw('count(*) as total'), 'customer_types.type', 'customer_types.isLeader')
             ->groupBy('type_id')
+            ->get();
+
+            $customersByStatus = DB::table('customers')
+            ->select('status', DB::raw('count(*) as total'))
+            ->groupBy('status')
             ->get();
 
             $message = 'into second conditional';
@@ -53,6 +64,7 @@ class DashboardController extends Controller
             'code' => 201,
             'countByState' => $countByState,
             'countByCategory' => $countByCategory,
+            'customersByStatus' => $customersByStatus,
         ];
         return response()->json($data, $data['code']);
     }

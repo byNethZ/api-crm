@@ -5,6 +5,7 @@ use App\Http\Controllers\CatalogueController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerTypeController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FoodbankController;
 use App\Http\Controllers\FotographyController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PromosController;
@@ -46,10 +47,12 @@ Route::group(['middleware' => ["auth:sanctum"]], function(){
     Route::get('/customersByVendor', [CustomerController::class, 'show']);
     Route::get('/customers', [CustomerController::class, 'index']);
     Route::get('/customer/{id}', [CustomerController::class, 'showCustomer']);
+    Route::get('/customersByStatus/{status}', [CustomerController::class, 'getCustomerByStatus']);
     //customer_types
     Route::get('/types', [CustomerTypeController::class, 'index']);
     //departament
     Route::get('/departaments', [UserController::class, 'indexDepartament']);
+    Route::get('/publicDepartaments', [UserController::class, 'publicDepartament']);
 
     //products
     Route::get('/products', [ProductController::class, 'index']);
@@ -91,6 +94,8 @@ Route::group(['middleware' => ["auth:sanctum"]], function(){
     Route::put('/users/{id}', [UserController::class, 'update']);
     //customer
     Route::put('/customer/{id}', [CustomerController::class, 'update']);
+    Route::put('/customerStatus/{id}/{status}', [CustomerController::class, 'updateStatus']);
+    Route::put('/interests/{id}', [CustomerController::class, 'updateInterests']);
     //users
     Route::put('/edit-user/{id}', [UserController::class, 'update']);
     //password user
@@ -124,3 +129,6 @@ Route::post('/customerToken/{token}', [CustomerController::class, 'savePreferenc
 //fotography
 Route::post('/contract-fotography', [FotographyController::class, 'store']);
 Route::get('/contract-fotography', [FotographyController::class, 'index']);
+
+//foodbank
+Route::post('/foodbank', [FoodbankController::class, 'sendEmail']);

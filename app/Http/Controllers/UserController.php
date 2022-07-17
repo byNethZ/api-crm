@@ -43,7 +43,7 @@ class UserController extends Controller
                 'token_type' => 'Bearer',
                 'name' => $user->name,
                 'id' => $user->id,
-                'vendor_id' => $vendor_id->id,
+                'vendor_id' => $vendor_id ? $vendor_id->id : null,
                 'role_id' => $user->role_id,
                 'departament_id' => $user->departament_id,
                 'departament_alt_id' => $user->departament_alt_id,
@@ -151,6 +151,10 @@ class UserController extends Controller
         $request['password'] = Hash::make($request['password']);
 
         return User::create($request->all());
+    }
+
+    public function publicDepartament(){
+        return Departament::where('public', '=', 1)->get();
     }
 
 }

@@ -49,4 +49,12 @@ class Customer extends Model
         return $this->hasOne(State::class, 'state_id');
     }
 
+    public function interests(){
+        return $this->hasOne(ProspectInterest::class, 'customer_id');
+    }
+
+    public function industry(){
+        return $this->hasOne(CustomerType::class, 'id', 'type_id');
+    }
+
 }

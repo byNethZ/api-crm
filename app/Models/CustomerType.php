@@ -13,6 +13,7 @@ class CustomerType extends Model
     protected $fillable = [
         'id',
         'type',
+        'isLeader'
     ];
 
 
