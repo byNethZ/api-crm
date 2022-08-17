@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Models\Vendor;
 use Illuminate\Http\Request;
 
@@ -15,7 +16,8 @@ class VendorController extends Controller
 
     public function index()
     {
-        return Vendor::with('user')->get();
+        //return Vendor::with('user')->get();
+        return User::where('departament_id', '=', 4)->orWhere('departament_alt_id', '=', 4)->get();
     }
 
     /**
@@ -41,12 +43,11 @@ class VendorController extends Controller
      */
     public function show($id)
     {
-        $vendor = Vendor::find($id);
-        $user = $vendor->user()->get();
+        $user = User::find($id);
+        //$user = $vendor->user()->get();
 
         $data = [
             'code' => 201,
-            'vendor' => $vendor,
             'user' => $user
         ];
 

@@ -33,7 +33,10 @@ class UserController extends Controller
                 'message' => 'Login incorrecto'
             ];
         } else{
-            $vendor_id = $user->departament_id == 4 ? Vendor::where('user_id', $user->id)->first() : null;
+            if( $user->departament_id == 4 || $user->departament_alt_id == 4){
+                $vendor_id = $user->id;
+            }
+
             $token = $user->createToken('auth_token')->plainTextToken;
 
             $data = [
@@ -43,7 +46,7 @@ class UserController extends Controller
                 'token_type' => 'Bearer',
                 'name' => $user->name,
                 'id' => $user->id,
-                'vendor_id' => $vendor_id ? $vendor_id->id : null,
+                'vendor_id' => isset($vendor_id) ? $vendor_id : null,
                 'role_id' => $user->role_id,
                 'departament_id' => $user->departament_id,
                 'departament_alt_id' => $user->departament_alt_id,
@@ -115,18 +118,17 @@ class UserController extends Controller
         $user = User::where('id', $id)->first();
 
         if($user->departament_id == 4 || $user->departament_alt_id == 4 ){
-            $vendor = Vendor::where('user_id', $id)->first();
-            $customers = Customer::where('vendor_id', $vendor->id)->get();
+            //$vendor = Vendor::where('user_id', $id)->first();
+            $customers = Customer::where('vendor_id', $user->id)->get();
              if(count($customers) !== 0){
 
-                DB::table('customers')->where('vendor_id', $vendor->id)->update(array('vendor_id' => 10));
+                DB::table('customers')->where('vendor_id', $user->id)->update(array('vendor_id' => 10));
              }
             $user->delete();
-            $vendor->delete();
+            //$vendor->delete();
             $data = [
                 'code' => 201,
-                'user' => $user,
-                'vendor' => $vendor ? $vendor : null,
+                'user' => $user
             ];
 
             return response()->json($data, $data['code']);

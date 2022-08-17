@@ -2,14 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\WhatsAppChannel\WhatsAppChannel;
 use App\Models\Customer;
 use App\Models\CustomerType;
 use App\Models\ProspectInterest;
 use App\Models\State;
 use App\Models\User;
 use App\Models\Vendor;
+use App\Utils\Utils;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redis;
+
+use Twilio\Rest\Client;
 
 class CustomerController extends Controller
 {
@@ -20,14 +24,19 @@ class CustomerController extends Controller
 
         if ($user->role_id === 1) {
 
-            $customers = Customer::all();
+            $customers = Customer::where('status', '=', 5)->get();
         } else {
+            $id = 10;
+
+            if($user->departament_id == 4 || $user->departament_alt_id == 4){
+                $id = $user->id;
+            }
 
             //real code
-            $vendor_id = Vendor::where('user_id', $user->id)->first();
+            //$vendor_id = Vendor::where('user_id', $user->id)->first();
 
             //debug code
-            $id = $vendor_id ? $vendor_id->id : 10;
+            //$id = $vendor_id ? $vendor_id->id : 10;
 
             $customers = Customer::where('vendor_id', $id)->where('status', '=', 5)->get();
         }
@@ -43,32 +52,81 @@ class CustomerController extends Controller
 
     public function store(Request $request)
     {
-        $customerData = $request->customer;
-        $customer = Customer::create([
-            'name' => $customerData['name'],
-            'phone' => $customerData['phone'],
-            'email' => $customerData['email'],
-            'type_id' => $customerData['type_id'],
-            'field_1' => $customerData['field_1'],
-            'field_2' => $customerData['field_2'] ? $customerData['field_2'] : null,
-            'field_3' => $customerData['field_3'],
-            'status' => $customerData['status'],
-            'vendor_id' => $customerData['vendor_id'],
-            'token' => $customerData['token']
-        ]);
 
-        $interestsJson = json_encode($request->interests);
+        //return $request->interests;
+        $userAuth = auth()->user();
+        $completeFileName = '';
 
-        $interests = ProspectInterest::create([
-            'customer_id' => $customer->id,
-            'interests' => $interestsJson
-        ]);
+        if($request->customer){
+            $customerData = $request->customer;
+            $isProspect = true;
+            if($customerData->hasFile('image')){
+                //$completeFileName = $request->file('image')->getClientOriginalName();
+                //$fileNameOnly = pathinfo($completeFileName, PATHINFO_FILENAME);
+                //$image_name = time().$request->file('image')->getClientOriginalName();
+                $customerData['image'] = $request->file('image')->store('uploads', 'public');
+            } else {
+                $customerData['image'] = '';
+            }
+            $customer = Customer::create([
+                'name' => $customerData['name'],
+                'phone' => $customerData['phone'],
+                'email' => $customerData['email'],
+                'type_id' => $customerData['type_id'],
+                'field_1' => $customerData['field_1'],
+                'field_2' => $customerData['field_2'] ? $customerData['field_2'] : null,
+                'field_3' => $customerData['field_3'],
+                'status' => $customerData['status'],
+                'vendor_id' => $customerData['vendor_id'],
+                'token' => $customerData['token'],
+                'image' => $customerData['image']
+            ]);
+        } else {
+            $customerData = $request;
+            $isProspect = false;
+
+            $dateFormatted = date('Y-m-d', strtotime($request->birthday));
+
+            if($request->hasFile('image')){
+                //$completeFileName = $request->file('image')->getClientOriginalName();
+                //$fileNameOnly = pathinfo($completeFileName, PATHINFO_FILENAME);
+                //$image_name = time().$request->file('image')->getClientOriginalName();
+                $fileName = $request->file('image')->store('uploads', 'public');
+            } else {
+                $fileName = '';
+            }
+
+            return $fileName;
+
+            $dataChanged = $request->merge(['birthday' => $dateFormatted, 'image' => $fileName]);
+
+            $customer = Customer::create($dataChanged->all());
+        }
+
+        if($request->interests){
+            $interestsJson = json_encode($request->interests);
+
+            $interests = ProspectInterest::create([
+                'customer_id' => $customer->id,
+                'interests' => $interestsJson
+            ]);
+        }
 
         $data = [
             'code' => 201,
             'customerCreated' => $customer,
-            'interests' => $interests
+            'interests' => isset($interests) ? $interests : null,
+            'isProspect' => $isProspect
         ];
+
+        $industry = CustomerType::where('id', $customer->type_id)->first();
+
+        $message = new WhatsAppChannel;
+        if(isset($request->customer)){
+            $message->notifySaveCustomer($userAuth, $customer, $industry, $request->interests, true);
+        } else {
+            $message->notifySaveCustomer($userAuth, $customer, $industry, null, false);
+        }
 
         return response()->json($data, $data['code']);
     }
@@ -97,8 +155,8 @@ class CustomerController extends Controller
         $category = CustomerType::where('id', $customer->type_id)->first();
         $categoryName = $category ? $category->type : '';
 
-        $vendor = Vendor::where('id', $customer->vendor_id)->first();
-        $user = $vendor->user()->first();
+        $user = User::where('id', $customer->vendor_id)->first();
+        //$user = $vendor->user()->first();
 
         $state = State::where('id', $customer->state_id)->first();
 
@@ -117,7 +175,9 @@ class CustomerController extends Controller
     public function update(Request $request, $id)
     {
         $customer = Customer::find($id);
-        $customer->update($request->all());
+        $dateFormatted = date('Y-m-d', strtotime($request->birthday));
+        $dataChanged = $request->merge(['birthday' => $dateFormatted]);
+        $customer->update($dataChanged->all());
 
         return $customer;
     }
@@ -211,14 +271,19 @@ class CustomerController extends Controller
 
         if ($user->role_id === 1) {
 
-            $customers = Customer::all();
+            $customers = Customer::where('status', '=', $status)->with('interests')->with('industry')->with('vendor')->get();
         } else {
+            $id = 10;
+
+            if($user->departament_id == 4 || $user->departament_alt_id == 4){
+                $id = $user->id;
+            }
 
             //real code
-            $vendor_id = Vendor::where('user_id', $user->id)->first();
+            //$vendor_id = Vendor::where('user_id', $user->id)->first();
 
             //debug code
-            $id = $vendor_id ? $vendor_id->id : 10;
+            //$id = $vendor_id ? $vendor_id->id : 10;
 
             $customers = Customer::where('vendor_id', $id)->where('status', '=', $status)->with('interests')->with('industry')->get();
         }
@@ -232,12 +297,55 @@ class CustomerController extends Controller
         return response()->json($data, $data['code']);
     }
 
+    public function getCustomersByIndustry($industry){
+        $userAuth = auth()->user();
+        $user = User::find($userAuth->id);
+
+        if ($user->role_id === 1) {
+
+            $customers = Customer::where('type_id', '=', $industry)->with('interests')->with('vendor')->get();
+        } else {
+
+            //real code
+            //$vendor_id = Vendor::where('user_id', $user->id)->first();
+
+            //debug code
+            //$id = $vendor_id ? $vendor_id->id : 10;
+            $id = 10;
+
+            if($user->departament_id == 4 || $user->departament_alt_id == 4){
+                $id = $user->id;
+            }
+
+            $customers = Customer::where('vendor_id', $id)->where('type_id', '=', $industry)->with('interests')->get();
+        }
+
+        $data = [
+            'code' => 200,
+            'status' => 'success',
+            'customers' => $customers
+        ];
+
+        return response()->json($data, $data['code']);
+    }
+
     public function updateStatus($id, $status){
+        $userAuth = auth()->user();
+
         $customer = Customer::find($id);
         $customer->update([
             'status' => $status
         ]);
+        $customerUpdated = Customer::find($id);
 
-        return $customer;
+        $status = Utils::formatStatus($customerUpdated->status);
+
+        $industry = CustomerType::where('id', $customer->type_id)->first();
+        //$industry = isset($category) ? $category->type : 'No especificado';
+
+        $message = new WhatsAppChannel;
+        $message->notifyChangeStatus($userAuth, $customer, $status, $industry);
+
+        return $customerUpdated;
     }
 }

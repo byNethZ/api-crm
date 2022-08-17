@@ -16,28 +16,28 @@ class DashboardController extends Controller
         if($user->departament_id === 4 || $user->departament_alt_id === 4){
 
 
-            $vendor_id = Vendor::where('user_id', $user->id)->first();
+            //$vendor_id = Vendor::where('user_id', $user->id)->first();
             $countByState = DB::table('customers')
-            ->where('vendor_id', $vendor_id->id)
+            ->where('vendor_id', $user->id)
             ->join('states', 'states.id', '=', 'customers.state_id')
             ->select('state_id', DB::raw('count(*) as total'), 'states.state_name', 'states.lat', 'states.lng')
             ->groupBy('state_id')
             ->get();
 
             $countByCategory = DB::table('customers')
-            ->where('vendor_id', $vendor_id->id)
+            ->where('vendor_id', $user->id)
             ->join('customer_types', 'customer_types.id', '=', 'customers.type_id')
-            ->select('type_id', DB::raw('count(*) as total'), 'customer_types.type')
+            ->select('type_id', DB::raw('count(*) as total'), 'customer_types.type', 'customer_types.isLeader')
             ->groupBy('type_id')
             ->get();
 
             $customersByStatus = DB::table('customers')
-            ->where('vendor_id', $vendor_id->id)
+            ->where('vendor_id', $user->id)
             ->select('status', DB::raw('count(*) as total'))
             ->groupBy('status')
             ->get();
 
-            $message = $vendor_id;
+            $message = $user;
         } else {
 
 
@@ -65,6 +65,52 @@ class DashboardController extends Controller
             'countByState' => $countByState,
             'countByCategory' => $countByCategory,
             'customersByStatus' => $customersByStatus,
+        ];
+        return response()->json($data, $data['code']);
+    }
+
+    public function salesDashboardByVendor($id){
+        $countByState = DB::table('customers')
+        ->where('vendor_id', $id)
+        ->join('states', 'states.id', '=', 'customers.state_id')
+        ->select('state_id', DB::raw('count(*) as total'), 'states.state_name', 'states.lat', 'states.lng')
+        ->groupBy('state_id')
+        ->get();
+
+        $countByCategory = DB::table('customers')
+        ->where('vendor_id', $id)
+        ->join('customer_types', 'customer_types.id', '=', 'customers.type_id')
+        ->select('type_id', DB::raw('count(*) as total'), 'customer_types.type', 'customer_types.isLeader')
+        ->groupBy('type_id')
+        ->get();
+
+        $customersByStatus = DB::table('customers')
+        ->where('vendor_id', $id)
+        ->select('status', DB::raw('count(*) as total'))
+        ->groupBy('status')
+        ->get();
+
+        $data = [
+            'code' => 201,
+            'countByState' => $countByState,
+            'countByCategory' => $countByCategory,
+            'customersByStatus' => $customersByStatus,
+        ];
+        return response()->json($data, $data['code']);
+    }
+
+    public function customersByVendor(){
+
+        $customersByVendor = DB::table('customers')
+        ->join('users', 'users.id', '=', 'customers.vendor_id')
+        ->select('vendor_id', DB::raw('count(*) as total'), 'users.name')
+        ->groupBy('vendor_id')
+        ->get();
+
+
+        $data = [
+            'code' => 201,
+            'customerByVendor' => $customersByVendor
         ];
         return response()->json($data, $data['code']);
     }

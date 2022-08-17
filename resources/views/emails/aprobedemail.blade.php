@@ -12,6 +12,8 @@
     <h4 style="text-align: center;">El proyecto fue aprobado por: {{ $approver }} </h4>
 
     <img src="{{$urlGif}}" alt="Aprobado" style="display: block; margin-left:auto; margin-right:auto;">
-    
+    <img src="{{$gifCelebration}}" alt="Aprobado" style="display: block; margin-left:auto; margin-right:auto;">
+
+
 </body>
 </html>

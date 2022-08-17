@@ -11,4 +11,8 @@ class CustomerTypeController extends Controller
     {
         return CustomerType::all();
     }
+
+    public function show($id){
+        return CustomerType::find($id);
+    }
 }

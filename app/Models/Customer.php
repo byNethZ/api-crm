@@ -40,7 +40,10 @@ class Customer extends Model
         'field_1',
         'field_2',
         'field_3',
-        'token'
+        'gender',
+        'birthday',
+        'token',
+        'image'
     ];
 
     protected $guarded = ['id'];
@@ -55,6 +58,10 @@ class Customer extends Model
 
     public function industry(){
         return $this->hasOne(CustomerType::class, 'id', 'type_id');
+    }
+
+    public function vendor(){
+        return $this->hasOne(Vendor::class, 'id', 'vendor_id');
     }
 
 }
