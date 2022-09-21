@@ -11,7 +11,8 @@ class AprobedEmail extends Model
 
     protected $fillable = [
         'aprobed',
-        'approver'
+        'approver',
+        'message'
     ];
 
     public function user()

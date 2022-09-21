@@ -6,6 +6,7 @@ use App\Models\AprobedEmail;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Mail\AprobedEmailMailable;
+use App\WhatsAppChannel\WhatsAppChannel;
 use Illuminate\Support\Facades\Mail;
 
 class AprobedEmailController extends Controller
@@ -96,11 +97,12 @@ class AprobedEmailController extends Controller
         ]); */
 
         $approver = $request['approver'];
-        $aprobed = 1;
+        $aprobed = $request['aprobed'] ? $request['aprobed'] : 1;
+        $message = $request['message'] ? $request['message'] : '';
 
         $aprobedEmailUpdate = AprobedEmail::find($id);
 
-        $aprobedEmailUpdate->update(array('aprobed' => $aprobed, 'approver' => $approver));
+        $aprobedEmailUpdate->update(array('aprobed' => $aprobed, 'approver' => $approver, 'message' => $message));
 
         //Sending email process
 
@@ -146,6 +148,9 @@ class AprobedEmailController extends Controller
             ];
         } */
         //return debug
+        $message = new WhatsAppChannel();
+        $message->notifyStatusChecklist($user, $aprobedEmailUpdate);
+
         return response()->json($data, $data['code']);
 
         //return;
@@ -156,9 +161,30 @@ class AprobedEmailController extends Controller
         $user = User::find($id);
 
         if ($user->role_id === 1) {
-            $emails = AprobedEmail::latest()->take(10)->get()->load('user');
+            $emails = AprobedEmail::latest()->take(20)->get()->load('user');
         } else {
-            $emails = AprobedEmail::latest()->where('user_id', $id)->take(10)->get();
+            $emails = AprobedEmail::latest()->where('user_id', $id)->take(20)->get();
+        }
+
+        $data = [
+            'code' => 200,
+            'status' => 'success',
+            'user' => $user,
+            'links' => $emails
+        ];
+
+        return response()->json($data, $data['code']);;
+    }
+
+
+    public function showByStatus($id, $aprobed)
+    {
+        $user = User::find($id);
+
+        if ($user->role_id === 1) {
+            $emails = AprobedEmail::latest()->where('aprobed', $aprobed)->take(20)->get()->load('user');
+        } else {
+            $emails = AprobedEmail::latest()->where('user_id', $id)->where('aprobed', $aprobed)->take(20)->get();
         }
 
         $data = [

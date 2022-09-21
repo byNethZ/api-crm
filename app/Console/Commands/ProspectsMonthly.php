@@ -1,0 +1,88 @@
+<?php
+
+namespace App\Console\Commands;
+
+use App\Utils\Utils;
+use App\WhatsAppChannel\WhatsAppChannel;
+use Carbon\Carbon;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
+
+class ProspectsMonthly extends Command
+{
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
+    protected $signature = 'notificationWhatsApp:monthlyProspects';
+
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Command description';
+
+    /**
+     * Create a new command instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        parent::__construct();
+    }
+
+    /**
+     * Execute the console command.
+     *
+     * @return int
+     */
+    public function handle()
+    {
+        $now = Carbon::now();
+        $start = $now->startOfMonth()->format('Y-m-d H:i');
+        $end = $now->endOfMonth()->format('Y-m-d H:i');
+        $utils = new Utils();
+
+        // Convert those times to EST
+        //$start->timezone('EST');
+        //$end->timezone('EST');
+
+        $customersTotalByVendor = DB::table('customers')
+            ->join('users', 'users.id', '=', 'customers.vendor_id')
+            ->groupBy('customers.vendor_id')
+            ->select(DB::raw('count(*) as total'), 'users.name')
+            ->whereBetween('customers.created_at', [$start, $end])
+            //->orderBy('status')
+            ->get();
+
+        $customersTotalStatus = DB::table('customers')
+            ->join('users', 'users.id', '=', 'customers.vendor_id')
+            ->groupBy('customers.vendor_id')
+            ->groupBy('customers.status')
+            ->select(DB::raw('count(*) as total'), 'users.name', DB::raw('customers.status as status'))
+            ->whereBetween('customers.created_at', [$start, $end])
+            ->orderBy('customers.vendor_id')
+            ->get();
+
+        $customersTotal =  DB::table('customers')
+            ->select(DB::raw('count(*) as total'))
+            ->whereBetween('customers.created_at', [$start, $end])
+            ->get();
+
+        $customersTotalDigital =  DB::table('customers')
+            ->where('field_2', 1)
+            ->select(DB::raw('count(*) as total'))
+            ->whereBetween('customers.created_at', [$start, $end])
+            ->get();
+
+        $data = $utils->mergeArrays($customersTotalByVendor->toArray(), $customersTotalStatus->toArray());
+
+        $message = new WhatsAppChannel;
+        $message->prospectsDaily($customersTotal[0], $data, $customersTotalDigital[0], 'mensual');
+        //$message->prospectsDaily(0, 0, 0);
+        return 0;
+    }
+}

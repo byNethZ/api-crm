@@ -6,6 +6,7 @@ use App\Models\Customer;
 use App\Models\Departament;
 use App\Models\User;
 use App\Models\Vendor;
+use App\WhatsAppChannel\WhatsAppChannel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -157,6 +158,26 @@ class UserController extends Controller
 
     public function publicDepartament(){
         return Departament::where('public', '=', 1)->get();
+    }
+
+    public function sendActivateSystem($id){
+        if($id == 99){
+            $users = User::all();
+
+            foreach ($users as $user) {
+                $message = new WhatsAppChannel;
+                $message->activeSystemSend($user);
+            }
+
+            return;
+        }
+
+        $user = User::find($id);
+
+        $message = new WhatsAppChannel;
+        $message->activeSystemSend($user);
+
+        return;
     }
 
 }

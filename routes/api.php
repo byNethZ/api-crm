@@ -12,6 +12,7 @@ use App\Http\Controllers\PromosController;
 use App\Http\Controllers\StatesController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VendorController;
+use App\Http\Controllers\WebsiteController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -71,6 +72,8 @@ Route::group(['middleware' => ["auth:sanctum"]], function(){
     Route::put('/customer/{id}', [CustomerController::class, 'update']);
     Route::put('/customerStatus/{id}/{status}', [CustomerController::class, 'updateStatus']);
     Route::put('/interests/{id}', [CustomerController::class, 'updateInterests']);
+    //files
+    Route::post('/customerImage/{id}', [CustomerController::class, 'uploadImage']);
 
     //CUSTOMER_TYPES Routes
     //Get
@@ -110,11 +113,31 @@ Route::group(['middleware' => ["auth:sanctum"]], function(){
     //Delete
     Route::delete('/contract-fotography/{id}', [FotographyController::class, 'destroy']);
 
+    //WEBSITES
+    //Get
+    Route::get('/websites', [WebsiteController::class, 'index']);
+    //Post
+    Route::post('/websites', [WebsiteController::class, 'store']);
+    //Delete
+    Route::delete('/websites/{id}', [WebsiteController::class, 'destroy']);
+    //Update
+    Route::put('/websites/{id}', [WebsiteController::class, 'update']);
+
     //DASHBOARD Routes
     //Get
     Route::get('/dashboard/sales', [DashboardController::class, 'salesDashboard']);
     Route::get('/dashboard/sales/{id}', [DashboardController::class, 'salesDashboardByVendor']);
     Route::get('/dashboard/customers/vendors', [DashboardController::class, 'customersByVendor']);
+    Route::get('/dashboard/customers/current', [DashboardController::class, 'customersCurrentDay']);
+
+    //Notificationes
+    //Activate Notifications by WhatsAppChannel
+    Route::post('/notifications/{id}', [UserController::class, 'sendActivateSystem']);
+
+    //Pruebas
+    //terminal
+    Route::get('/terminal', [DashboardController::class, 'terminal']);
+    Route::get('/checkemail', [DashboardController::class, 'checkemail']);
 
 });
 
@@ -125,6 +148,7 @@ Route::post('/create-checklist', [AprobedEmailController::class, 'create']);
 Route::get('/checklist/{id}', [AprobedEmailController::class, 'store']);
 Route::post('/checklist/{id}', [AprobedEmailController::class, 'update']);
 Route::get('/all-checklist/{id}', [AprobedEmailController::class, 'show']);
+Route::get('/checklistStatus/{id}/{aprobed}', [AprobedEmailController::class, 'showByStatus']);
 
 //promos for customer ruleta
 Route::post('/promo-gift', [PromosController::class, 'save']);

@@ -17,9 +17,10 @@ use App\Models\ProductCategory;
 
 class Utils
 {
-    public static function formatStatus($idStatus){
+    public static function formatStatus($idStatus)
+    {
         //$idStatus = intval($idStatus);
-        switch($idStatus){
+        switch ($idStatus) {
             case '0':
                 return 'Prospecto';
                 break;
@@ -46,12 +47,43 @@ class Utils
         }
     }
 
-    public function formatInterests($idInterest) : string {
+    public static function formatStatusEmoticons($idStatus)
+    {
+        //$idStatus = intval($idStatus);
+        switch ($idStatus) {
+            case 0:
+                return '🆕';
+                break;
+            case 1:
+                return '📞';
+                break;
+            case 2:
+                return '🔄';
+                break;
+            case 3:
+                return '🤝';
+                break;
+            case 4:
+                return '🚫';
+                break;
+            case 5:
+                return '✅';
+                break;
+            case 6:
+                return '❗';
+                break;
+            default:
+                return '❗';
+        }
+    }
+
+    public function formatInterests($idInterest): string
+    {
         $interest = ProductCategory::find($idInterest);
         $interestText = "";
 
-        if(isset($interest) ){
-            switch($interest->id){
+        if (isset($interest)) {
+            switch ($interest->id) {
                 case 1:
                     $interestText = "👕 ";
                     break;
@@ -88,44 +120,45 @@ class Utils
         return $interestText;
     }
 
-    public function formatIndustry($industry) : string{
+    public function formatIndustry($industry): string
+    {
         //$category = CustomerType::where('id', $customer->type_id)->first();
         $industryText = "";
 
-        if(isset($industry) ){
-            switch($industry->id){
+        if (isset($industry)) {
+            switch ($industry->id) {
                 case 1:
-                    $industryText = "🚗 ";
+                    $industryText = "🌮 ";
                     break;
                 case 2:
                     $industryText = "⚙ ";
                     break;
                 case 3:
-                    $industryText = "📱 ";
-                    break;
-                case 4:
                     $industryText = "🦺 ";
                     break;
-                case 5:
-                    $industryText = "📖 ";
-                    break;
-                case 6:
-                    $industryText = "🎭 ";
-                    break;
-                case 7:
-                    $industryText = "🌮 ";
-                    break;
-                case 8:
-                    $industryText = "🏥 ";
-                    break;
-                case 9:
-                    $industryText = "🐶 ";
-                    break;
-                case 10:
+                case 4:
                     $industryText = "🧹 ";
                     break;
-                case 11:
+                case 5:
                     $industryText = "🌿 ";
+                    break;
+                case 6:
+                    $industryText = "🚗 ";
+                    break;
+                case 7:
+                    $industryText = "📱 ";
+                    break;
+                case 8:
+                    $industryText = "📖 ";
+                    break;
+                case 9:
+                    $industryText = "🎭 ";
+                    break;
+                case 10:
+                    $industryText = "🏥 ";
+                    break;
+                case 11:
+                    $industryText = "🐶 ";
                     break;
                 case 12:
                     $industryText = "⚖ ";
@@ -171,6 +204,31 @@ class Utils
         $industryText = 'No especificado';
 
         return $industryText;
+    }
+
+    public function mergeArrays($arrayOne, $arrayTwo)
+    {
+        $array = [];
+
+        foreach ($arrayOne as $valueOne) {
+            $status = [];
+            foreach ($arrayTwo as $valueTwo) {
+                if ($valueTwo->name === $valueOne->name) {
+                    array_push($status, $valueTwo);
+                }
+            }
+
+            $data = [
+                'total' => $valueOne->total,
+                'name' => $valueOne->name,
+                'status' => $status
+            ];
+
+            array_push($array, $data);
+        }
+
+
+        return $array;
     }
 }
 

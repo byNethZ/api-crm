@@ -11,8 +11,9 @@ use App\Models\User;
 use App\Models\Vendor;
 use App\Utils\Utils;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Redis;
-
+use Illuminate\Support\Facades\Storage;
 use Twilio\Rest\Client;
 
 class CustomerController extends Controller
@@ -55,19 +56,10 @@ class CustomerController extends Controller
 
         //return $request->interests;
         $userAuth = auth()->user();
-        $completeFileName = '';
 
         if($request->customer){
             $customerData = $request->customer;
             $isProspect = true;
-            if($customerData->hasFile('image')){
-                //$completeFileName = $request->file('image')->getClientOriginalName();
-                //$fileNameOnly = pathinfo($completeFileName, PATHINFO_FILENAME);
-                //$image_name = time().$request->file('image')->getClientOriginalName();
-                $customerData['image'] = $request->file('image')->store('uploads', 'public');
-            } else {
-                $customerData['image'] = '';
-            }
             $customer = Customer::create([
                 'name' => $customerData['name'],
                 'phone' => $customerData['phone'],
@@ -78,27 +70,14 @@ class CustomerController extends Controller
                 'field_3' => $customerData['field_3'],
                 'status' => $customerData['status'],
                 'vendor_id' => $customerData['vendor_id'],
-                'token' => $customerData['token'],
-                'image' => $customerData['image']
+                'token' => $customerData['token']
             ]);
         } else {
             $customerData = $request;
             $isProspect = false;
 
             $dateFormatted = date('Y-m-d', strtotime($request->birthday));
-
-            if($request->hasFile('image')){
-                //$completeFileName = $request->file('image')->getClientOriginalName();
-                //$fileNameOnly = pathinfo($completeFileName, PATHINFO_FILENAME);
-                //$image_name = time().$request->file('image')->getClientOriginalName();
-                $fileName = $request->file('image')->store('uploads', 'public');
-            } else {
-                $fileName = '';
-            }
-
-            return $fileName;
-
-            $dataChanged = $request->merge(['birthday' => $dateFormatted, 'image' => $fileName]);
+            $dataChanged = $request->merge(['birthday' => $dateFormatted]);
 
             $customer = Customer::create($dataChanged->all());
         }
@@ -179,7 +158,7 @@ class CustomerController extends Controller
         $dataChanged = $request->merge(['birthday' => $dateFormatted]);
         $customer->update($dataChanged->all());
 
-        return $customer;
+        return $request;
     }
 
     public function getDataByToken($token)
@@ -276,7 +255,13 @@ class CustomerController extends Controller
             $id = 10;
 
             if($user->departament_id == 4 || $user->departament_alt_id == 4){
+
                 $id = $user->id;
+                $customers = Customer::where('vendor_id', $id)->where('status', '=', $status)->with('interests')->with('industry')->get();
+
+            } else {
+
+                $customers = Customer::where('status', '=', $status)->with('interests')->with('industry')->with('vendor')->get();
             }
 
             //real code
@@ -285,7 +270,6 @@ class CustomerController extends Controller
             //debug code
             //$id = $vendor_id ? $vendor_id->id : 10;
 
-            $customers = Customer::where('vendor_id', $id)->where('status', '=', $status)->with('interests')->with('industry')->get();
         }
 
         $data = [
@@ -347,5 +331,34 @@ class CustomerController extends Controller
         $message->notifyChangeStatus($userAuth, $customer, $status, $industry);
 
         return $customerUpdated;
+    }
+
+    public function uploadImage(Request $request, $id){
+        $customer = Customer::find($id);
+        $image_name = 'default.jpg';
+        //return $request->file('image');
+        $prevImage = $customer->image;
+        $exists = false;
+
+        if($request->hasFile('image')){
+            $image_name = time().$request->file('image')->getClientOriginalName();
+            $fileName = $request->file('image')->storeAs('public/customers', $image_name);
+
+            if(File::exists('storage/customers/'.$prevImage)){
+                File::delete('storage/customers/'.$prevImage);
+                $exists = true;
+            }
+
+            $customer->image = $image_name;
+            $customer->save();
+        }
+        $data = [
+            'prevImage' => $prevImage,
+            'newImage' => $image_name,
+            'exists' => $exists
+        ];
+        //return response()->json($data, 201);
+
+        return response()->json($image_name, 200);
     }
 }
