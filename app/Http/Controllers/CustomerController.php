@@ -161,6 +161,18 @@ class CustomerController extends Controller
         return $request;
     }
 
+    public function prospectRejected(Request $request, $id)
+    {
+        $customer = Customer::find($id);
+
+        $customer->update([
+            'notes' => $request->notes,
+            'status' => 4
+        ]);
+
+        return $request;
+    }
+
     public function getDataByToken($token)
     {
         $customer = Customer::where('token', '=', $token)->first();
@@ -337,15 +349,15 @@ class CustomerController extends Controller
         $customer = Customer::find($id);
         $image_name = 'default.jpg';
         //return $request->file('image');
-        $prevImage = $customer->image;
+        $prevImage = isset($customer->image) ? $customer->image : 'default.jpg';
         $exists = false;
 
         if($request->hasFile('image')){
             $image_name = time().$request->file('image')->getClientOriginalName();
             $fileName = $request->file('image')->storeAs('public/customers', $image_name);
 
-            if(File::exists('storage/customers/'.$prevImage)){
-                File::delete('storage/customers/'.$prevImage);
+            if(isset($customer->image) && File::exists('storage/customers/'.$customer->image)){
+                File::delete('storage/customers/'.$customer->image);
                 $exists = true;
             }
 
@@ -354,11 +366,11 @@ class CustomerController extends Controller
         }
         $data = [
             'prevImage' => $prevImage,
-            'newImage' => $image_name,
+            'newImage' => $customer->image,
             'exists' => $exists
         ];
         //return response()->json($data, 201);
 
-        return response()->json($image_name, 200);
+        return response()->json($data, 200);
     }
 }

@@ -73,16 +73,30 @@ class ProspectsWeekly extends Command
             ->get();
 
         $customersTotalDigital =  DB::table('customers')
-            ->where('field_2', 1)
+            ->whereNotNull('field_2')
             ->select(DB::raw('count(*) as total'))
             ->whereBetween('customers.created_at', [$start, $end])
+            ->get();
+
+        $customersTotalByMarketing = DB::table('customers')
+            ->join('users', 'users.id', '=', 'customers.field_2')
+            ->groupBy('customers.field_2')
+            //->select(DB::raw('count(*) as total'), 'users.name')
+            ->select(DB::raw('count(*) as total'), 'users.name')
+            ->whereBetween('customers.created_at', [$start, $end])
+            //->latest()
+            //->orderBy('status')
             ->get();
 
         $data = $utils->mergeArrays($customersTotalByVendor->toArray(), $customersTotalStatus->toArray());
 
         $message = new WhatsAppChannel;
-        $message->prospectsDaily($customersTotal[0], $data, $customersTotalDigital[0], 'semanal');
-        //$message->prospectsDaily(0, 0, 0);
+
+        $message->prospectsDaily($customersTotal[0], $data, $customersTotalDigital[0], 'semanal', $customersTotalByMarketing->toArray());
+        //Roberto message
+        //$message->prospectsDaily($customersTotal[0], $data, $customersTotalDigital[0], 'semanal', $customersTotalByMarketing->toArray(), '+5219841533143');
+        $message->prospectsDaily($customersTotal[0], $data, $customersTotalDigital[0], 'semanal', $customersTotalByMarketing->toArray(), '+14234322492');
+
         return 0;
     }
 }

@@ -2,20 +2,38 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\CheckMail;
 use App\Models\Customer;
-use App\Utils\Utils;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
+
 class DashboardController extends Controller
 {
     function salesDashboard()
     {
         $user = auth()->user();
         $state = [];
-        if ($user->departament_id === 4 && $user->role_id !== 1 || $user->departament_alt_id === 4 && $user->role_id !== 1) {
+        if ( $user->departament_id === 8 || $user->role_id === 1 ) {
 
+            $message = $user;
+            $countByState = DB::table('customers')
+                ->where('status', 5)
+                ->join('states', 'states.id', '=', 'customers.state_id')
+                ->select('state_id', DB::raw('count(*) as total'), 'states.state_name', 'states.lat', 'states.lng')
+                ->groupBy('state_id')
+                ->get();
+
+            $countByCategory = DB::table('customers')
+                ->where('status', 5)
+                ->join('customer_types', 'customer_types.id', '=', 'customers.type_id')
+                ->select('type_id', DB::raw('count(*) as total'), 'customer_types.type', 'customer_types.isLeader')
+                ->groupBy('type_id')
+                ->get();
+
+            $customersByStatus = DB::table('customers')
+                ->select('status', DB::raw('count(*) as total'))
+                ->groupBy('status')
+                ->get();
+        } else {
 
             //$vendor_id = Vendor::where('user_id', $user->id)->first();
             $countByState = DB::table('customers')
@@ -39,31 +57,6 @@ class DashboardController extends Controller
                 ->select('status', DB::raw('count(*) as total'))
                 ->groupBy('status')
                 ->get();
-
-            $message = $user;
-        } else {
-
-
-            $countByState = DB::table('customers')
-                ->where('status', 5)
-                ->join('states', 'states.id', '=', 'customers.state_id')
-                ->select('state_id', DB::raw('count(*) as total'), 'states.state_name', 'states.lat', 'states.lng')
-                ->groupBy('state_id')
-                ->get();
-
-            $countByCategory = DB::table('customers')
-                ->where('status', 5)
-                ->join('customer_types', 'customer_types.id', '=', 'customers.type_id')
-                ->select('type_id', DB::raw('count(*) as total'), 'customer_types.type', 'customer_types.isLeader')
-                ->groupBy('type_id')
-                ->get();
-
-            $customersByStatus = DB::table('customers')
-                ->select('status', DB::raw('count(*) as total'))
-                ->groupBy('status')
-                ->get();
-
-            $message = 'into second conditional';
         }
         $data = [
             'code' => 201,
@@ -136,13 +129,23 @@ class DashboardController extends Controller
         $start->timezone('EST');
         $end->timezone('EST');
 
-        if ($user->role_id === 1) {
+        if ($user->role_id === 1 || $user->departament_id === 8) {
 
 
             //$customers = Customer::whereBetween('created_at', [$start, $end])->get();
             $customersTotalByVendor = DB::table('customers')
                 ->join('users', 'users.id', '=', 'customers.vendor_id')
                 ->groupBy('customers.vendor_id')
+                //->select(DB::raw('count(*) as total'), 'users.name')
+                ->select(DB::raw('count(*) as total'), 'users.name')
+                ->whereBetween('customers.created_at', [$start, $end])
+                //->latest()
+                //->orderBy('status')
+                ->get();
+
+            $customersTotalByMarketing = DB::table('customers')
+                ->join('users', 'users.id', '=', 'customers.field_2')
+                ->groupBy('customers.field_2')
                 //->select(DB::raw('count(*) as total'), 'users.name')
                 ->select(DB::raw('count(*) as total'), 'users.name')
                 ->whereBetween('customers.created_at', [$start, $end])
@@ -172,7 +175,8 @@ class DashboardController extends Controller
                 'data' => [
                     'total' => $customersTotal,
                     'totalbyVendor' => $customersTotalByVendor,
-                    'byStatus' => $customersTotalStatus
+                    'byStatus' => $customersTotalStatus,
+                    'byMarketing' => $customersTotalByMarketing,
                 ],
             ];
         } else {
@@ -199,65 +203,5 @@ class DashboardController extends Controller
         }
 
         return response()->json($data, $data['code']);
-    }
-
-    public function terminal()
-    {
-
-        $start = Carbon::today('America/New_York');
-        $end = Carbon::today('America/New_York')->endOfDay();
-        $utils = new Utils();
-
-        // Convert those times to EST
-        $start->timezone('EST');
-        $end->timezone('EST');
-
-        //$customers = Customer::whereBetween('created_at', [$start, $end])->get();
-        $customersTotalByVendor = DB::table('customers')
-            ->join('users', 'users.id', '=', 'customers.vendor_id')
-            ->groupBy('customers.vendor_id')
-            //->select(DB::raw('count(*) as total'), 'users.name')
-            ->select(DB::raw('count(*) as total'), 'users.name')
-            ->whereBetween('customers.created_at', [$start, $end])
-            //->latest()
-            //->orderBy('status')
-            ->get();
-
-        $customersTotalStatus = DB::table('customers')
-            ->join('users', 'users.id', '=', 'customers.vendor_id')
-            ->groupBy('customers.vendor_id')
-            //->select(DB::raw('count(*) as total'), 'users.name')
-            ->groupBy('customers.status')
-            ->select(DB::raw('count(*) as total'), 'users.name', DB::raw('customers.status as status'))
-            ->whereBetween('customers.created_at', [$start, $end])
-            //->latest()
-            ->orderBy('customers.vendor_id')
-            ->get();
-
-        $customersTotal =  DB::table('customers')
-            ->select(DB::raw('count(*) as total'))
-            ->whereBetween('customers.created_at', [$start, $end])
-            //->latest()
-            ->get();
-
-        $data = $utils->mergeArrays($customersTotalByVendor->toArray(), $customersTotalStatus->toArray());
-        //$data = array_merge_recursive($customersTotalByVendor->toArray(), $customersTotalStatus->toArray());
-
-
-
-        $data = [
-            'code' => 200,
-            'total' => $customersTotal[0],
-            'data' => $data
-        ];
-
-        return response()->json($data, $data['code']);
-    }
-
-    public function checkemail(){
-        $email = 'netzabliones@gmail.com';
-        $correo = new CheckMail();
-        Mail::to($email)->send($correo);
-        return;
     }
 }

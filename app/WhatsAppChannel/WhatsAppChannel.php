@@ -8,14 +8,26 @@ use Exception;
 use Illuminate\Notifications\Notification;
 use Twilio\Rest\Client;
 
+use function PHPUnit\Framework\isNull;
+
 class WhatsAppChannel
 {
     private $utils;
     private $twilio;
+    public $salesLeaderPhone;
+    public $menusLeaderPhone;
+    public $ceoPhone;
 
     function __construct(){
         $this->utils = new Utils;
         $this->twilio = new Client(config('services.twilio.sid'), config('services.twilio.token'));
+        $this->salesLeaderPhone = '+14235910238';
+        $this->menusLeaderPhone = '+5216441003044';
+        $this->ceoPhone = '+14234322492';
+
+        //$this->salesLeaderPhone = '+5219841533143';
+        //$this->menusLeaderPhone = '+5219841533143';
+        //$this->ceoPhone = '+5219841533143';
 
     }
 
@@ -27,8 +39,6 @@ class WhatsAppChannel
         $user = User::find($userAuth->id);
 
         $phoneUser = $user->public_phone ? $user->public_phone : $user->personal_phone;
-        //$leaderPhone = '+14235910238';
-        $leaderPhone = '+5215538150607';
 
         $messageUser = "🔃 Has modificado el estatus del cliente:\n" . $customer->name . "\n Industria: " . $industryFormated . "\nEstado: " . $status;
         $messageLeader = "🔃 " . $userAuth->name . " ha modificado el estatus del cliente:\n" . $customer->name .  "\n Industria: " . $industryFormated . "\nEstado: " . $status;
@@ -40,7 +50,7 @@ class WhatsAppChannel
         } else {
 
             $this->sendMessage($phoneUser, $messageUser);
-            $this->sendMessage($leaderPhone, $messageLeader);
+            $this->sendMessage($this->salesLeaderPhone, $messageLeader);
         }
 
         return true;
@@ -54,8 +64,6 @@ class WhatsAppChannel
         $user = User::find($userAuth->id);
 
         $phoneUser = $user->public_phone ? $user->public_phone : $user->personal_phone;
-        //$leaderPhone = '+14235910238';
-        $leaderPhone = '+5215538150607';
 
         if ($isProspect) {
             $interestsString = '';
@@ -67,10 +75,21 @@ class WhatsAppChannel
                 }
             }
 
-            $messageNormal = "🔰 Se ha registrado al siguiente prospecto:\n" . $customer->name .  "\nIndustria: " . $industryFormated . "\nIntereses:\n" . $interestsString;
-            $messageLeader = "🔰 " . $userAuth->name . " ha registrado al siguiente prospecto:\n" . $customer->name .  "\nIndustria: " . $industryFormated . "\nIntereses:\n" . $interestsString;
+            $messageNormal = "🔰 Has registrado al siguiente prospecto:\n" . $customer->name .  "\nIndustria: " . $industryFormated . "\nIntereses:\n" . $interestsString;
+
+            if($user->departament_id === 8 || $user->departament_alt_id === 8 ){
+
+                $vendor = User::find($customer->vendor_id);
+                $messageNormal .= "\nAsignado a: " . $vendor->name;
+                $messageLeader = "🔰 " . $userAuth->name . ", del Departamento de Marketing, ha registrado al siguiente prospecto:\n" . $customer->name .  "\nIndustria: " . $industryFormated . "\nIntereses:\n" . $interestsString . "\nAsignado a: " . $vendor->name;
+
+            } else {
+
+                $messageLeader = "🔰 " . $userAuth->name . " ha registrado al siguiente prospecto:\n" . $customer->name .  "\nIndustria: " . $industryFormated . "\nIntereses:\n" . $interestsString;
+            }
+
         } else {
-            $messageNormal = "🥳 Se ha registrado al siguiente cliente:\n" . $customer->name .  "\nIndustria: " . $industryFormated;
+            $messageNormal = "🥳 Has registrado al siguiente cliente:\n" . $customer->name .  "\nIndustria: " . $industryFormated;
             $messageLeader = "🥳 " . $userAuth->name . " ha registrado al siguiente cliente:\n" . $customer->name .  "\nIndustria: " . $industryFormated;
         }
 
@@ -79,7 +98,7 @@ class WhatsAppChannel
         } else {
 
             $this->sendMessage($phoneUser, $messageNormal);
-            $this->sendMessage($leaderPhone, $messageLeader);
+            $this->sendMessage($this->salesLeaderPhone, $messageLeader);
         }
 
         return true;
@@ -91,7 +110,7 @@ class WhatsAppChannel
 
         $phoneUser = $user->public_phone ? $user->public_phone : $user->personal_phone;
 
-        $message = 'Hola ' . $user->name . ', ¿Te gustaría recibir mensajes hoy de Bliones LLC?';
+        $message = 'Hola ' . $user->name . ', ¿Te gustaría recibir mensajes hoy de Bliones LLC? Si es afirmativo responde a este mensaje. En caso contrario no es necesario que respondas.';
 
         $this->sendMessage($phoneUser, $message);
     }
@@ -101,8 +120,6 @@ class WhatsAppChannel
 
 
         $phoneUser = $user->public_phone ? $user->public_phone : $user->personal_phone;
-        //$leaderPhone = '+5215538150607';
-        $leaderPhone = '+5216441003044';
 
         $status = 'Pendiente';
 
@@ -131,15 +148,14 @@ class WhatsAppChannel
 
         } else {
             $this->sendMessage($phoneUser, $messageNormal);
-            $this->sendMessage($leaderPhone, $messageLeader);
+            $this->sendMessage($this->menusLeaderPhone, $messageLeader);
         }
     }
 
-    public function prospectsDaily($total, $data, $totalDigital, $lapse)
+    public function prospectsDaily($total, $data, $totalDigital, $lapse, $dataMarketing, $phone = null)
     {
+        $leaderPhone = isNull($phone) ? $this->menusLeaderPhone : $phone;
 
-
-        $leaderPhone = '+5219841533143';
         $messageLeader = "Reporte ".$lapse." de prospectos\n📥 Prospectos nuevos totales - " . $total->total. "\n✅ Prospectos individuales\n";
 
         foreach ($data as $value) {
@@ -154,7 +170,14 @@ class WhatsAppChannel
             $statusString = "";
         }
 
-        $messageLeader .= "Total de prospectos desde Digital: " . $totalDigital->total;
+        $messageLeader .= "Total de prospectos desde Marketing: " . $totalDigital->total . "\n";
+
+        foreach( $dataMarketing as $value ) {
+
+            $messageLeader .= $value->name . ": " . $value->total . "\n";
+            //$messageLeader .= $value['name'];
+
+        }
 
         /*
             Reporte diario de prospectos
@@ -173,7 +196,49 @@ class WhatsAppChannel
         return true;
     }
 
-    private function sendMessage(string $phoneNumber, string $messageForSend){
+    public function sendOutdatedCustomersMessage($phone, $outdatedCustomers, $toLeader = false){
+
+        if(!$toLeader){
+            $message = "Tienes desactualizados los siguientes clientes\n\n";
+
+            foreach($outdatedCustomers as $statusData){
+                $message .= $this->utils->formatStatusEmoticons($statusData->status) . ": " . $statusData->name . "\n";
+            }
+
+            $message .= "\nPuedes revisarlos de manera detallada en tu panel de prospectos";
+        } else {
+            $message = "Están desactualizados los siguiente clientes\n\n";
+
+            foreach($outdatedCustomers as $statusData){
+                $message .= "\n" . $statusData['vendor'] . ":\n";
+
+                foreach($statusData['customersOutdated'] as $customers){
+                    $message .= $this->utils->formatStatus($customers->status, true) . ": " . $customers->total . "\n";
+                }
+            }
+
+            $message .= "\nPuedes revisarlos de manera detallada en tu panel de prospectos";
+
+
+        }
+
+
+        try {
+            $messageSended = $this->twilio->messages
+            ->create(
+
+                "whatsapp:" . $phone, // to
+                [
+                    "from" => "whatsapp:+5215577518523",
+                    "body" => $message
+                ]
+            );
+        } catch (Exception $e) {
+            echo 'Error is: ',  $e->getMessage(), "\n";
+        }
+    }
+
+    public function sendMessage(string $phoneNumber, string $messageForSend){
 
         try {
             $messageSended = $this->twilio->messages

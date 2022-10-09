@@ -7,6 +7,7 @@ use App\Http\Controllers\CustomerTypeController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FoodbankController;
 use App\Http\Controllers\FotographyController;
+use App\Http\Controllers\PanelController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PromosController;
 use App\Http\Controllers\StatesController;
@@ -72,6 +73,7 @@ Route::group(['middleware' => ["auth:sanctum"]], function(){
     Route::put('/customer/{id}', [CustomerController::class, 'update']);
     Route::put('/customerStatus/{id}/{status}', [CustomerController::class, 'updateStatus']);
     Route::put('/interests/{id}', [CustomerController::class, 'updateInterests']);
+    Route::put('/customers/rejected/{id}', [CustomerController::class, 'prospectRejected']);
     //files
     Route::post('/customerImage/{id}', [CustomerController::class, 'uploadImage']);
 
@@ -134,10 +136,15 @@ Route::group(['middleware' => ["auth:sanctum"]], function(){
     //Activate Notifications by WhatsAppChannel
     Route::post('/notifications/{id}', [UserController::class, 'sendActivateSystem']);
 
+    //Panel
+    //Send reports
+    Route::get('/reports/{id}/{mode}', [PanelController::class, 'sendReports']);
+
     //Pruebas
     //terminal
-    Route::get('/terminal', [DashboardController::class, 'terminal']);
-    Route::get('/checkemail', [DashboardController::class, 'checkemail']);
+    Route::get('/terminal', [PanelController::class, 'terminal']);
+    Route::get('/checkemail/{id}', [PanelController::class, 'checkemail']);
+    Route::get('/checkmessage/{id}', [PanelController::class, 'checkMessage']);
 
 });
 

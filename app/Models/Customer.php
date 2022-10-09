@@ -37,15 +37,14 @@ class Customer extends Model
         'birthplace',
         'sport',
         'business_number',
-        'field_1',
-        'field_2',
-        'field_3',
+        'field_1', //facebook
+        'field_2', //asigned by (Digital)
+        'field_3', //origin
         'gender',
         'birthday',
-        'gender',
         'occupation',
         'marital_status',
-        'nacionality',
+        'nationality',
         'language',
         'fears',
         'emotions',
@@ -70,6 +69,7 @@ class Customer extends Model
         'responsability',
         'demotivators',
         'works',
+        'notes',
         'token',
         'image'
     ];

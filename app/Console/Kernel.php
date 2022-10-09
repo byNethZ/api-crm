@@ -17,6 +17,7 @@ class Kernel extends ConsoleKernel
     {
         //$schedule->command('test:prueba')->everyMinute();
         $schedule->command('notificationWhatsApp:activateSystem')->weekdays()->dailyAt('10:00');
+        $schedule->command('notificationWhatsApp:outdatedCustomers')->weekdays()->dailyAt('13:00');
         $schedule->command('notificationWhatsApp:dailyProspects')->weekdays()->dailyAt('22:00');
         $schedule->command('notificationWhatsApp:weeklyProspects')->weeklyOn(5, '22:01');
         $schedule->command('notificationWhatsApp:monthlyProspects')->lastDayOfMonth('22:02');

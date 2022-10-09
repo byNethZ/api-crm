@@ -17,30 +17,30 @@ use App\Models\ProductCategory;
 
 class Utils
 {
-    public static function formatStatus($idStatus)
+    public static function formatStatus($idStatus, $isPlural = false)
     {
         //$idStatus = intval($idStatus);
         switch ($idStatus) {
             case '0':
-                return 'Prospecto';
+                return $isPlural ? 'Prospectos' : 'Prospecto';
                 break;
             case '1':
-                return 'Negociación';
+                return $isPlural ? 'En negociación' : 'Negociación';
                 break;
             case '2':
-                return 'Seguimiento';
+                return $isPlural ? 'En seguimiento' : 'Seguimiento';
                 break;
             case '3':
-                return 'Cierre';
+                return $isPlural ? 'En cierre' : 'Cierre';
                 break;
             case '4':
-                return 'Rechazo';
+                return $isPlural ? 'Rechazados' : 'Rechazo';
                 break;
             case '5':
-                return 'Cliente Activo';
+                return $isPlural ? 'Activos' : 'Cliente Activo';
                 break;
             case '6':
-                return 'Cliente Inactivo';
+                return $isPlural ? 'Inactivos' : 'Cliente Inactivo';
                 break;
             default:
                 return 'No especificado';
@@ -52,16 +52,16 @@ class Utils
         //$idStatus = intval($idStatus);
         switch ($idStatus) {
             case 0:
-                return '🆕';
+                return '[P]';
                 break;
             case 1:
-                return '📞';
+                return '[N]';
                 break;
             case 2:
-                return '🔄';
+                return '[S]';
                 break;
             case 3:
-                return '🤝';
+                return '[C]';
                 break;
             case 4:
                 return '🚫';
