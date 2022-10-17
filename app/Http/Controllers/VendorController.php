@@ -20,6 +20,16 @@ class VendorController extends Controller
         return User::where('departament_id', '=', 4)->orWhere('departament_alt_id', '=', 4)->get();
     }
 
+    public function vendorsAndMarketing(){
+
+        return User::where('departament_id', '=', 4)
+            ->orWhere('departament_alt_id', '=', 4)
+            ->orWhere('departament_id', '=', 8)
+            ->orWhere('departament_alt_id', '=', 8)
+            ->get();
+
+    }
+
     /**
      * Store a newly created resource in storage.
      *

@@ -92,4 +92,9 @@ class Customer extends Model
         return $this->hasOne(Vendor::class, 'id', 'vendor_id');
     }
 
+    public function comments()
+    {
+        return $this->hasMany(Comment::class, 'customer_id', 'id');
+    }
+
 }

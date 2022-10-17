@@ -25,6 +25,7 @@ class WhatsAppChannel
         $this->menusLeaderPhone = '+5216441003044';
         $this->ceoPhone = '+14234322492';
 
+        //$this->salesLeaderPhone = '+5215538150607';
         //$this->salesLeaderPhone = '+5219841533143';
         //$this->menusLeaderPhone = '+5219841533143';
         //$this->ceoPhone = '+5219841533143';
@@ -154,7 +155,7 @@ class WhatsAppChannel
 
     public function prospectsDaily($total, $data, $totalDigital, $lapse, $dataMarketing, $phone = null)
     {
-        $leaderPhone = isNull($phone) ? $this->menusLeaderPhone : $phone;
+        $leaderPhone = empty($phone) ? $this->salesLeaderPhone : $phone;
 
         $messageLeader = "Reporte ".$lapse." de prospectos\n📥 Prospectos nuevos totales - " . $total->total. "\n✅ Prospectos individuales\n";
 

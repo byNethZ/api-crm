@@ -2,11 +2,13 @@
 
 use App\Http\Controllers\AprobedEmailController;
 use App\Http\Controllers\CatalogueController;
+use App\Http\Controllers\CommentsController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerTypeController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FoodbankController;
 use App\Http\Controllers\FotographyController;
+use App\Http\Controllers\GoalsController;
 use App\Http\Controllers\PanelController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PromosController;
@@ -96,6 +98,7 @@ Route::group(['middleware' => ["auth:sanctum"]], function(){
     //VENDORS Routes
     //Get
     Route::get('/vendors', [VendorController::class, 'index']);
+    Route::get('/marketingvendors', [VendorController::class, 'vendorsAndMarketing']);
     Route::get('/vendor/{id}', [VendorController::class, 'show']);
 
     //PROMOS Routes
@@ -131,6 +134,18 @@ Route::group(['middleware' => ["auth:sanctum"]], function(){
     Route::get('/dashboard/sales/{id}', [DashboardController::class, 'salesDashboardByVendor']);
     Route::get('/dashboard/customers/vendors', [DashboardController::class, 'customersByVendor']);
     Route::get('/dashboard/customers/current', [DashboardController::class, 'customersCurrentDay']);
+
+    //Comments
+    //post
+    Route::get('/comments/{id}', [CommentsController::class, 'index']);
+    Route::post('/comments', [CommentsController::class, 'store']);
+
+    //Goals
+    //index -get
+    Route::get('/goals', [GoalsController::class, 'index']);
+    Route::post('/goals', [GoalsController::class, 'store']);
+    Route::get('/goals/{id}', [GoalsController::class, 'show']);
+    Route::put('/goals/{id}', [GoalsController::class, 'update']);
 
     //Notificationes
     //Activate Notifications by WhatsAppChannel
