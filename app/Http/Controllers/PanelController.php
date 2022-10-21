@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Mail\CheckMail;
 use App\Models\Customer;
+use App\Models\ProspectInterest;
 use App\Models\User;
 use App\Utils\Utils;
 use App\WhatsAppChannel\WhatsAppChannel;
@@ -124,65 +125,8 @@ class PanelController extends Controller
 
     public function terminal()
     {
-        $start = Carbon::today('America/New_York');
-        $today = Carbon::today('America/New_York');
-        $end = Carbon::today('America/New_York')->endOfDay();
-
-        // Convert those times to EST
-        $start->timezone('EST');
-        $end->timezone('EST');
-        $userId = 10;
-
-        $arrayResult = [];
-        $message = new WhatsAppChannel;
-        $olderThanFiveDays = Carbon::now()->subDays(5)->toDateTimeString();
-        $users = User::where('departament_id', '=', 4)->orWhere('departament_alt_id', '=', 4)->get();
-        $leaderSalesPhone = '+5219841533143';
-
-        foreach( $users as $user) {
-
-            $phoneUser = $user->public_phone ? $user->public_phone : $user->personal_phone;
-
-            $vendorArray = [
-                'vendor' => $user->name
-            ];
-
-            $customersOutdated = Customer::Where('vendor_id', '=', $user->id)
-            ->where('status', '!=', 4)
-            ->where('status', '!=', 5)
-            ->where('status', '!=', 6)
-            ->where('updated_at', '<',  $olderThanFiveDays)
-            //->join('users', 'users.id', '=', $user->id)
-            //->groupBy('customers.status')
-            //->select(DB::raw('count(*) as total'), 'customers.status')
-            ->select('customers.name', 'customers.status')
-            //->whereBetween('customers.created_at', [$start, $end])
-            ->get();
-
-            $customersOutdatedByVendor = Customer::Where('vendor_id', '=', $user->id)
-            ->where('status', '!=', 4)
-            ->where('status', '!=', 5)
-            ->where('status', '!=', 6)
-            ->where('updated_at', '<',  $olderThanFiveDays)
-            //->join('users', 'users.id', '=', $user->id)
-            ->groupBy('customers.status')
-            ->select(DB::raw('count(*) as total'), 'customers.status')
-            //->select('customers.name', 'customers.status')
-            //->whereBetween('customers.created_at', [$start, $end])
-            ->get();
-
-            if(count($customersOutdated)){
-                //sending whatsapp to user
-                $vendorArray = [...$vendorArray, 'customersOutdated' => $customersOutdatedByVendor];
-                $arrayResult = [...$arrayResult, $vendorArray];
-                $message->sendOutdatedCustomersMessage($phoneUser, $customersOutdated);
-
-            }
-
-        }
-
-        //to Selene
-        $message->sendOutdatedCustomersMessage($leaderSalesPhone, $arrayResult, true);
+        $interests = ProspectInterest::where('customer_id', '=', 453)->first();
+        $interestsJSON = json_decode($interests->interests);
 
 
 
@@ -190,7 +134,7 @@ class PanelController extends Controller
 
         $data = [
             'code' => 200,
-            'result' => $arrayResult,
+            'result' => $interestsJSON,
         ];
 
         return response()->json($data, $data['code']);

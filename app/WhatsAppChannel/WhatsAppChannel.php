@@ -21,12 +21,13 @@ class WhatsAppChannel
     function __construct(){
         $this->utils = new Utils;
         $this->twilio = new Client(config('services.twilio.sid'), config('services.twilio.token'));
-        $this->salesLeaderPhone = '+14235910238';
+
+        //$this->salesLeaderPhone = '+14235910238';
         $this->menusLeaderPhone = '+5216441003044';
         $this->ceoPhone = '+14234322492';
 
         //$this->salesLeaderPhone = '+5215538150607';
-        //$this->salesLeaderPhone = '+5219841533143';
+        $this->salesLeaderPhone = '+5219841533143';
         //$this->menusLeaderPhone = '+5219841533143';
         //$this->ceoPhone = '+5219841533143';
 
@@ -101,6 +102,29 @@ class WhatsAppChannel
             $this->sendMessage($phoneUser, $messageNormal);
             $this->sendMessage($this->salesLeaderPhone, $messageLeader);
         }
+
+        return true;
+    }
+
+    public function notifyAssignedCustomer($customer, $user, $industry, $interests){
+
+        $phoneUser = $user->public_phone ? $user->public_phone : $user->personal_phone;
+        $industryFormated = $this->utils->formatIndustry($industry);
+
+        $message = "🔰 Te han asignado al siguiente prospecto:\n" . $customer->name ."\n";
+
+        if($interests){
+            foreach ($interests as $interest) {
+                $oneInterestString = $this->utils->formatInterests($interest);
+                $message .= $oneInterestString . "\n";
+                $oneInterestString = '';
+            }
+        }
+
+        $message .= "\nIndustria: " . $industryFormated;
+
+
+        $this->sendMessage($phoneUser, $message);
 
         return true;
     }

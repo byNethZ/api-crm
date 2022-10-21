@@ -107,6 +107,11 @@ class CustomerController extends Controller
             $message->notifySaveCustomer($userAuth, $customer, $industry, null, false);
         }
 
+        if($customerData['field_2']){
+            $userAssigned = User::find($customerData['vendor_id']);
+            $message->notifyAssignedCustomer($customer, $userAssigned, $industry, $request->interests);
+        }
+
         return response()->json($data, $data['code']);
     }
 
@@ -341,6 +346,35 @@ class CustomerController extends Controller
 
         $message = new WhatsAppChannel;
         $message->notifyChangeStatus($userAuth, $customer, $status, $industry);
+
+        return $customerUpdated;
+    }
+
+    public function changeVendor($id, $status, Request $request){
+        $userAuth = auth()->user();
+
+        $customer = Customer::find($id);
+        $customer->update([
+            'status' => $status,
+            'vendor_id' => $request->vendor_id
+        ]);
+        $customerUpdated = Customer::find($id);
+
+        $status = Utils::formatStatus($customerUpdated->status);
+
+        $industry = CustomerType::where('id', $customer->type_id)->first();
+        //$industry = isset($category) ? $category->type : 'No especificado';
+        $interests = ProspectInterest::where('customer_id', '=', $customerUpdated->id)->first();
+        $interestsJSON = null;
+
+        if($interests){
+            $interestsJSON = json_decode($interests->interests);
+        }
+
+        $message = new WhatsAppChannel;
+        $userAssigned = User::find($request->vendor_id);
+        //$message->notifyChangeStatus($userAuth, $customer, $status, $industry);
+        $message->notifyAssignedCustomer($customerUpdated, $userAssigned, $industry, $interestsJSON);
 
         return $customerUpdated;
     }

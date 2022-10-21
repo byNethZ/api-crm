@@ -74,6 +74,7 @@ Route::group(['middleware' => ["auth:sanctum"]], function(){
     //Put
     Route::put('/customer/{id}', [CustomerController::class, 'update']);
     Route::put('/customerStatus/{id}/{status}', [CustomerController::class, 'updateStatus']);
+    Route::put('/change-vendor/{id}/{status}', [CustomerController::class, 'changeVendor']);
     Route::put('/interests/{id}', [CustomerController::class, 'updateInterests']);
     Route::put('/customers/rejected/{id}', [CustomerController::class, 'prospectRejected']);
     //files
