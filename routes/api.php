@@ -106,6 +106,7 @@ Route::group(['middleware' => ["auth:sanctum"]], function(){
     //Get
     Route::get('/promos', [PromosController::class, 'index']);
     Route::get('/ruleta', [PromosController::class, 'indexRuleta']);
+    Route::put('/ruleta/{id}', [PromosController::class, 'setDelivered']);
 
     //LINK Routes
     //Post

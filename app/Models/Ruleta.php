@@ -16,7 +16,8 @@ class Ruleta extends Model
         'email',
         'gift',
         'asesor',
-        'delivered'
+        'delivered',
+        'season'
     ];
     use HasFactory;
 }

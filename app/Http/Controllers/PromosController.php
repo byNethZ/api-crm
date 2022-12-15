@@ -10,7 +10,8 @@ class PromosController extends Controller
 {
     public function index()
     {
-        return Promo::all();
+        //return Promo::all();
+        return Ruleta::where('season', '=', 'black_friday_2022')->get();
     }
 
     public function save(Request $request){
@@ -36,7 +37,8 @@ class PromosController extends Controller
                 'email' => $fields['email'],
                 'gift' => $fields['gift'],
                 'asesor' => $fields['asesor'],
-                'delivered' => 0
+                'delivered' => 0,
+                'season' => 'black_friday_2022'
             ]);
 
             $response = [
@@ -58,7 +60,7 @@ class PromosController extends Controller
 
     public function indexRuleta()
     {
-        return Ruleta::all();
+        return Ruleta::where('season', '=', 'black_friday_2022')->get();
     }
 
     public function saveRuleta(Request $request){
@@ -84,7 +86,8 @@ class PromosController extends Controller
                 'email' => $fields['email'],
                 'gift' => $fields['gift'],
                 'asesor' => $fields['asesor'],
-                'delivered' => 0
+                'delivered' => 0,
+                'season' => 'black_friday_2022'
             ]);
 
             $response = [
@@ -100,5 +103,21 @@ class PromosController extends Controller
         ];
 
         return response($response, $response['code']);
+    }
+
+    public function setDelivered(Request $request, $id){
+        $ruleta = Ruleta::find($id);
+
+        $ruleta->update([
+            'delivered' => 1
+        ]);
+
+        $response = [
+            'code' => 200,
+            'ruleta' => $ruleta
+        ];
+
+        return response($response, $response['code']);
+
     }
 }
