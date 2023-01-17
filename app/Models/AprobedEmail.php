@@ -10,9 +10,15 @@ class AprobedEmail extends Model
     protected $table = 'aprobedemails';
 
     protected $fillable = [
+        'customer',
+        'customer_id',
+        'user_id',
+        'type',
+        'notes',
+        'urldropbox',
         'aprobed',
         'approver',
-        'message'
+        'message',
     ];
 
     public function user()

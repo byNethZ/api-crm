@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Mail;
 
 class AprobedEmailController extends Controller
 {
+    // From old system
     public function generate(Request $request)
     {
         $request->validate([
@@ -23,6 +24,7 @@ class AprobedEmailController extends Controller
         $aprobedEmail->customer = $request->input('restaurant');
         $aprobedEmail->customer_id = 0;
         $aprobedEmail->user_id = $request->input('user_id');
+        $aprobedEmail->type = 'menu';
         $aprobedEmail->urldropbox = $request->input('urlDropbox');
         $aprobedEmail->aprobed = 0;
         $aprobedEmail->approver = '';
@@ -39,11 +41,13 @@ class AprobedEmailController extends Controller
         return response()->json($data, $data['code']);
     }
 
+    // From CRM
     public function create(Request $request)
     {
         $request->validate([
             'urldropbox' => 'required',
-            'customer' => 'required'
+            'customer' => 'required',
+            'type' =>  'required'
         ]);
 
         $aprobedEmail = new AprobedEmail();
@@ -51,10 +55,12 @@ class AprobedEmailController extends Controller
         $aprobedEmail->customer = $request->input('customer');
         $aprobedEmail->customer_id = $request->input('customer_id');
         $aprobedEmail->user_id = $request->input('user_id');
+        $aprobedEmail->type = $request->input('type');
         $aprobedEmail->urldropbox = $request->input('urldropbox');
         $aprobedEmail->aprobed = 0;
         $aprobedEmail->approver = '';
         $aprobedEmail->message = '';
+        $aprobedEmail->notes = $request->input('notes');
 
         $aprobedEmail->save();
 
@@ -70,6 +76,7 @@ class AprobedEmailController extends Controller
     public function store($id)
     {
         $aprobedemail = AprobedEmail::find($id);
+        $aprobedemail->makeHidden('notes');
 
         if (is_object($aprobedemail)) {
             $data = array(
@@ -96,6 +103,7 @@ class AprobedEmailController extends Controller
             'approver' => 'required'
         ]); */
 
+
         $approver = $request['approver'];
         $aprobed = $request['aprobed'] ? $request['aprobed'] : 1;
         $message = $request['message'] ? $request['message'] : '';
@@ -103,11 +111,14 @@ class AprobedEmailController extends Controller
         $aprobedEmailUpdate = AprobedEmail::find($id);
 
         $aprobedEmailUpdate->update(array('aprobed' => $aprobed, 'approver' => $approver, 'message' => $message));
-
-        //Sending email process
-
         $user_id = $aprobedEmailUpdate->user_id;
         $user = User::find($user_id);
+
+        //Sending WhatsAppChannel
+        $message = new WhatsAppChannel();
+        $message->notifyStatusChecklist($user, $aprobedEmailUpdate);
+
+        //Sending email process
 
         $email = $user->email;
 
@@ -148,12 +159,10 @@ class AprobedEmailController extends Controller
             ];
         } */
         //return debug
-        $message = new WhatsAppChannel();
-        $message->notifyStatusChecklist($user, $aprobedEmailUpdate);
 
-        return response()->json($data, $data['code']);
+        //return response()->json($data, $data['code']);
 
-        //return;
+        return;
     }
 
     public function show($id)
@@ -205,6 +214,7 @@ class AprobedEmailController extends Controller
         $link = AprobedEmail::find($id);
         $link->aprobed = 0;
         $link->approver = '';
+        $link->message = '';
         $link->save();
 
         $data = [

@@ -108,7 +108,7 @@ Route::group(['middleware' => ["auth:sanctum"]], function(){
     Route::get('/ruleta', [PromosController::class, 'indexRuleta']);
     Route::put('/ruleta/{id}', [PromosController::class, 'setDelivered']);
 
-    //LINK Routes
+    //LINK / Checklists Routes
     //Post
     Route::post('/create-checklist', [AprobedEmailController::class, 'create']);
     //Delete
@@ -168,7 +168,6 @@ Route::group(['middleware' => ["auth:sanctum"]], function(){
 //Public routes
 //checklist routes
 Route::post('/generate-checklist', [AprobedEmailController::class, 'generate']);
-Route::post('/create-checklist', [AprobedEmailController::class, 'create']);
 Route::get('/checklist/{id}', [AprobedEmailController::class, 'store']);
 Route::post('/checklist/{id}', [AprobedEmailController::class, 'update']);
 Route::get('/all-checklist/{id}', [AprobedEmailController::class, 'show']);
