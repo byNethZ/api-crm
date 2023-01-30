@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Goal;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class GoalsController extends Controller
 {
@@ -14,11 +15,17 @@ class GoalsController extends Controller
      */
     public function index()
     {
-        $goals = Goal::all();
+        //$goals = Goal::all();
+
+        $goalsQuantity = Goal::where('type', '=', 1)->get();
+        $goalsProspect = Goal::where('type', '=', 2)->get();
+
+        //$goals = Goal::groupBy('user_id')->select('type', 'jan_goal')->get();
 
         $data = [
             'code' => 200,
-            'goals' => $goals
+            'goals_quantity' => $goalsQuantity,
+            'goals_prospect' => $goalsProspect
         ];
 
         return response()->json($data, $data['code']);

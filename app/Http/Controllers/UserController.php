@@ -82,10 +82,7 @@ class UserController extends Controller
     }
 
     public function info(){
-        //$user = User::find($id);
         $user = auth()->user();
-
-        //return auth()->user();
         return response()->json($user, 200);
     }
 
@@ -103,7 +100,6 @@ class UserController extends Controller
     {
         $user = User::find($id);
         $departament = $user->departament()->get();
-        //$category = userCategory::where('id', $product->category_id)->first();
 
         $data = [
             'code' => 201,
@@ -119,20 +115,12 @@ class UserController extends Controller
         $user = User::where('id', $id)->first();
 
         if($user->departament_id == 4 || $user->departament_alt_id == 4 ){
-            //$vendor = Vendor::where('user_id', $id)->first();
+
             $customers = Customer::where('vendor_id', $user->id)->get();
              if(count($customers) !== 0){
 
                 DB::table('customers')->where('vendor_id', $user->id)->update(array('vendor_id' => 10));
              }
-            $user->delete();
-            //$vendor->delete();
-            $data = [
-                'code' => 201,
-                'user' => $user
-            ];
-
-            return response()->json($data, $data['code']);
         }
 
         $user->delete();

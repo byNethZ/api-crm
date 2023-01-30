@@ -45,7 +45,7 @@ class WhatsAppChannel
         $messageUser = "🔃 Has modificado el estatus del cliente:\n" . $customer->name . "\n Industria: " . $industryFormated . "\nEstado: " . $status;
         $messageLeader = "🔃 " . $userAuth->name . " ha modificado el estatus del cliente:\n" . $customer->name .  "\n Industria: " . $industryFormated . "\nEstado: " . $status;
 
-        if ($userAuth->role_id === 1) {
+        if ($userAuth->id === 2) {
 
             $this->sendMessage($phoneUser, $messageUser);
 
@@ -95,7 +95,7 @@ class WhatsAppChannel
             $messageLeader = "🥳 " . $userAuth->name . " ha registrado al siguiente cliente:\n" . $customer->name .  "\nIndustria: " . $industryFormated;
         }
 
-        if ($userAuth->role_id === 1) {
+        if ($userAuth->id === 2) {
             $this->sendMessage($phoneUser, $messageNormal);
         } else {
 

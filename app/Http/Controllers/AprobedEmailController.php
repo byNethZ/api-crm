@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Mail\AprobedEmailMailable;
 use App\WhatsAppChannel\WhatsAppChannel;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Validator;
 
 class AprobedEmailController extends Controller
 {
@@ -73,7 +74,8 @@ class AprobedEmailController extends Controller
         return response()->json($data, $data['code']);
     }
 
-    public function store($id)
+    //For client checklist form
+    public function show($id)
     {
         $aprobedemail = AprobedEmail::find($id);
         $aprobedemail->makeHidden('notes');
@@ -88,21 +90,50 @@ class AprobedEmailController extends Controller
             $data = array(
                 'code' => 404,
                 'status' => 'error',
-                'message' => 'El usuario no existe'
+                'message' => 'El checklist no existe'
             );
         }
 
         return response()->json($data, $data['code']);
     }
 
-    public function update($id, Request $request)
+    public function update(Request $request, $id){
+        $validator = Validator::make($request->all(), [
+            'urldropbox' => 'required|string',
+            'customer' => 'required|string',
+            'type' =>  'required|string',
+            'notes' => 'string'
+        ]);
+
+        if($validator->fails()){
+            return response()->json($validator->errors(), 400);
+        }
+
+        $validated = $validator->validated();
+
+        $checklist = AprobedEmail::find($id);
+
+        $updated = $checklist->update([
+            'urldropbox' => $validated['urldropbox'],
+            'customer' => $validated('customer'),
+            'type' => $validated('type'),
+            'aprobed' => 0,
+            'approver' => '',
+            'message' => '',
+            'notes' => $request->input('notes')
+        ]);
+
+        $data = [
+            'code' => 200,
+            'updated' => $checklist
+        ];
+
+        return response()->json($data, $data['code']);
+    }
+
+    //From clients checklists form
+    public function approve($id, Request $request)
     {
-
-        //Saving data in db
-        /*         $request->validate([
-            'approver' => 'required'
-        ]); */
-
 
         $approver = $request['approver'];
         $aprobed = $request['aprobed'] ? $request['aprobed'] : 1;
@@ -111,6 +142,7 @@ class AprobedEmailController extends Controller
         $aprobedEmailUpdate = AprobedEmail::find($id);
 
         $aprobedEmailUpdate->update(array('aprobed' => $aprobed, 'approver' => $approver, 'message' => $message));
+
         $user_id = $aprobedEmailUpdate->user_id;
         $user = User::find($user_id);
 
@@ -137,7 +169,6 @@ class AprobedEmailController extends Controller
 
 
         //Answer
-        //just debug message
         $data = [
             'code' => 200,
             'status' => 'success',
@@ -145,27 +176,10 @@ class AprobedEmailController extends Controller
             'aprobedemailsUpadte' => $aprobedEmailUpdate
         ];
 
-        /*         if($aprobedEmailUpdate){
-            $data = [
-                'code' => 200,
-                'status' => 'success',
-                'user' => $request,
-            ];
-        } else {
-            $data = [
-                'code' => 400,
-                'status' => 'error',
-                'message' => 'Hubo un error al actualizar'
-            ];
-        } */
-        //return debug
-
-        //return response()->json($data, $data['code']);
-
-        return;
+        return response()->json($data, $data['code']);
     }
 
-    public function show($id)
+    public function index($id)
     {
         $user = User::find($id);
 
@@ -206,11 +220,13 @@ class AprobedEmailController extends Controller
         return response()->json($data, $data['code']);;
     }
 
-    public function delete($id){
+    public function delete($id)
+    {
         return AprobedEmail::destroy($id);
     }
 
-    public function changeStatus($id){
+    public function changeStatus($id)
+    {
         $link = AprobedEmail::find($id);
         $link->aprobed = 0;
         $link->approver = '';

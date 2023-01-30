@@ -27,10 +27,10 @@ class PromosController extends Controller
             'asesor' => 'string'
         ]);
 
-        $promo = Promo::where('email', $fields['email'])->first();
+        $promoFounded = Promo::where('email', $fields['email'])->first();
 
-        if(!$promo){
-            $promo = Promo::create([
+        if(!$promoFounded){
+            $promoCreated = Promo::create([
                 'name' => $fields['name'],
                 'lastname' => $fields['lastname'],
                 'phone' => $fields['phone'],
@@ -43,14 +43,14 @@ class PromosController extends Controller
 
             $response = [
                 'code' => 201,
-                'promo' => $promo
+                'promo' => $promoCreated
             ];
 
             return response($response, $response['code']);
         }
         $response = [
             'code' => 202,
-            'promo' => $promo
+            'promo' => $promoFounded
         ];
 
         return response($response, $response['code']);

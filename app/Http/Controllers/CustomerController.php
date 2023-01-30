@@ -18,28 +18,21 @@ use Twilio\Rest\Client;
 
 class CustomerController extends Controller
 {
-    public function show()
+    public function indexByVendor()
     {
         $userAuth = auth()->user();
-        $user = User::find($userAuth->id);
 
-        if ($user->role_id === 1) {
+        if ($userAuth->role_id === 1 || $userAuth->id === 3) {
 
-            $customers = Customer::where('status', '=', 5)->get();
+            $customers = Customer::where('status', '=', 5)->orderBy('id', 'DESC')->get();
         } else {
             $id = 10;
 
-            if($user->departament_id == 4 || $user->departament_alt_id == 4){
-                $id = $user->id;
+            if($userAuth->departament_id == 4 || $userAuth->departament_alt_id == 4){
+                $id = $userAuth->id;
             }
 
-            //real code
-            //$vendor_id = Vendor::where('user_id', $user->id)->first();
-
-            //debug code
-            //$id = $vendor_id ? $vendor_id->id : 10;
-
-            $customers = Customer::where('vendor_id', $id)->where('status', '=', 5)->get();
+            $customers = Customer::where('vendor_id', $id)->where('status', '=', 5)->orderBy('id', 'DESC')->get();
         }
 
         $data = [
@@ -54,7 +47,6 @@ class CustomerController extends Controller
     public function store(Request $request)
     {
 
-        //return $request->interests;
         $userAuth = auth()->user();
 
         if($request->customer){
@@ -117,7 +109,7 @@ class CustomerController extends Controller
 
     public function index()
     {
-        $customers = Customer::all();
+        $customers = Customer::orderBy('id', 'DESC')->get();
 
         $data = [
             'code' => 200,
@@ -133,14 +125,13 @@ class CustomerController extends Controller
         return Customer::destroy($id);
     }
 
-    public function showCustomer($id)
+    public function show($id)
     {
         $customer = Customer::find($id);
         $category = CustomerType::where('id', $customer->type_id)->first();
         $categoryName = $category ? $category->type : '';
 
         $user = User::where('id', $customer->vendor_id)->first();
-        //$user = $vendor->user()->first();
 
         $state = State::where('id', $customer->state_id)->first();
 
@@ -260,32 +251,93 @@ class CustomerController extends Controller
         return response()->json($data, $data['code']);
     }
 
-    public function getCustomerByStatus($status)
-    {
+    //This function will replace functions "getCustomerByStatus" and "getCustomersByIndustry" after modifying services in client
+    public function getCustomersByProperty($property, $idProperty){
         $userAuth = auth()->user();
-        $user = User::find($userAuth->id);
 
-        if ($user->role_id === 1) {
+        if ($userAuth->role_id === 1 || $userAuth->id === 3) {
 
-            $customers = Customer::where('status', '=', $status)->with('interests')->with('industry')->with('vendor')->get();
+            $customers = Customer::where($property, '=', $idProperty)->with('interests')->with('industry')->with('vendor')->orderBy('id', 'DESC')->get();
         } else {
             $id = 10;
 
-            if($user->departament_id == 4 || $user->departament_alt_id == 4){
+            if($userAuth->departament_id == 4 || $userAuth->departament_alt_id == 4){
 
-                $id = $user->id;
-                $customers = Customer::where('vendor_id', $id)->where('status', '=', $status)->with('interests')->with('industry')->get();
+                $id = $userAuth->id;
+
+            }
+
+            $customers = Customer::where('vendor_id', $id)->where($property, '=', $idProperty)->with('interests')->with('industry')->with('vendor')->orderBy('id', 'DESC')->get();
+        }
+
+        $data = [
+            'code' => 200,
+            'status' => 'success',
+            'property' => $property,
+            'customers' => $customers
+        ];
+
+        return response()->json($data, $data['code']);
+    }
+
+    public function getAllProspects(){
+        $userAuth = auth()->user();
+
+        if ($userAuth->role_id === 1 || $userAuth->id === 3) {
+
+            $customers = Customer::where('status', '!=', 4)
+                ->where('status', '!=', 5)
+                ->where('status', '!=', 6)
+                ->with('interests')->with('industry')->with('vendor')
+                ->orderBy('id', 'DESC')
+                ->paginate(50);
+                //->paginate(2);
+        } else {
+            $id = 10;
+
+            if($userAuth->departament_id == 4 || $userAuth->departament_alt_id == 4){
+                $id = $userAuth->id;
+            }
+
+            $customers = Customer::where('vendor_id', $id)
+                ->where('status', '=', 4)
+                ->where('status', '=', 5)
+                ->where('status', '=', 6)
+                ->with('interests')->with('industry')->with('vendor')
+                ->orderBy('id', 'DESC')
+                ->paginate(50);
+                //->paginate(2);
+        }
+
+        $data = [
+            'code' => 200,
+            'status' => 'success',
+            'prospects' => $customers
+        ];
+
+        return response()->json($data, $data['code']);
+    }
+
+    //Clear this function when the corresponding services in client have been updated
+/*     public function getCustomerByStatus($status)
+    {
+        $userAuth = auth()->user();
+
+        if ($userAuth->role_id === 1 || $userAuth->id === 3) {
+
+            $customers = Customer::where('status', '=', $status)->with('interests')->with('industry')->with('vendor')->orderBy('id', 'DESC')->get();
+        } else {
+            $id = 10;
+
+            if($userAuth->departament_id == 4 || $userAuth->departament_alt_id == 4){
+
+                $id = $userAuth->id;
+                $customers = Customer::where('vendor_id', $id)->where('status', '=', $status)->with('interests')->with('industry')->orderBy('id', 'DESC')->get();
 
             } else {
 
-                $customers = Customer::where('status', '=', $status)->with('interests')->with('industry')->with('vendor')->get();
+                $customers = Customer::where('status', '=', $status)->with('interests')->with('industry')->with('vendor')->orderBy('id', 'DESC')->get();
             }
-
-            //real code
-            //$vendor_id = Vendor::where('user_id', $user->id)->first();
-
-            //debug code
-            //$id = $vendor_id ? $vendor_id->id : 10;
 
         }
 
@@ -296,29 +348,23 @@ class CustomerController extends Controller
         ];
 
         return response()->json($data, $data['code']);
-    }
+    } */
 
-    public function getCustomersByIndustry($industry){
+    //Clear this function when the corresponding services in client have been updated
+/*     public function getCustomersByIndustry($industry){
         $userAuth = auth()->user();
-        $user = User::find($userAuth->id);
 
-        if ($user->role_id === 1) {
+        if ($userAuth->role_id === 1 || $userAuth->id === 3) {
 
-            $customers = Customer::where('type_id', '=', $industry)->with('interests')->with('vendor')->get();
+            $customers = Customer::where('type_id', '=', $industry)->with('interests')->with('vendor')->orderBy('id', 'DESC')->get();
         } else {
-
-            //real code
-            //$vendor_id = Vendor::where('user_id', $user->id)->first();
-
-            //debug code
-            //$id = $vendor_id ? $vendor_id->id : 10;
             $id = 10;
 
-            if($user->departament_id == 4 || $user->departament_alt_id == 4){
-                $id = $user->id;
+            if($userAuth->departament_id == 4 || $userAuth->departament_alt_id == 4){
+                $id = $userAuth->id;
             }
 
-            $customers = Customer::where('vendor_id', $id)->where('type_id', '=', $industry)->with('interests')->get();
+            $customers = Customer::where('vendor_id', $id)->where('type_id', '=', $industry)->with('interests')->orderBy('id', 'DESC')->get();
         }
 
         $data = [
@@ -328,7 +374,7 @@ class CustomerController extends Controller
         ];
 
         return response()->json($data, $data['code']);
-    }
+    } */
 
     public function updateStatus($id, $status){
         $userAuth = auth()->user();
@@ -342,7 +388,6 @@ class CustomerController extends Controller
         $status = Utils::formatStatus($customerUpdated->status);
 
         $industry = CustomerType::where('id', $customer->type_id)->first();
-        //$industry = isset($category) ? $category->type : 'No especificado';
 
         $message = new WhatsAppChannel;
         $message->notifyChangeStatus($userAuth, $customer, $status, $industry);
@@ -351,7 +396,6 @@ class CustomerController extends Controller
     }
 
     public function changeVendor($id, $status, Request $request){
-        $userAuth = auth()->user();
 
         $customer = Customer::find($id);
         $customer->update([
@@ -363,7 +407,7 @@ class CustomerController extends Controller
         $status = Utils::formatStatus($customerUpdated->status);
 
         $industry = CustomerType::where('id', $customer->type_id)->first();
-        //$industry = isset($category) ? $category->type : 'No especificado';
+
         $interests = ProspectInterest::where('customer_id', '=', $customerUpdated->id)->first();
         $interestsJSON = null;
 
@@ -373,7 +417,7 @@ class CustomerController extends Controller
 
         $message = new WhatsAppChannel;
         $userAssigned = User::find($request->vendor_id);
-        //$message->notifyChangeStatus($userAuth, $customer, $status, $industry);
+
         $message->notifyAssignedCustomer($customerUpdated, $userAssigned, $industry, $interestsJSON);
 
         return $customerUpdated;
@@ -382,7 +426,7 @@ class CustomerController extends Controller
     public function uploadImage(Request $request, $id){
         $customer = Customer::find($id);
         $image_name = 'default.jpg';
-        //return $request->file('image');
+
         $prevImage = isset($customer->image) ? $customer->image : 'default.jpg';
         $exists = false;
 
@@ -403,7 +447,6 @@ class CustomerController extends Controller
             'newImage' => $customer->image,
             'exists' => $exists
         ];
-        //return response()->json($data, 201);
 
         return response()->json($data, 200);
     }

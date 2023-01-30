@@ -41,44 +41,50 @@ Route::post('/login', [UserController::class, 'login']);
 Route::group(['middleware' => ["auth:sanctum"]], function(){
 
     //USER Routes
-    //get
+    //CRUD
+    Route::post('/users', [UserController::class, 'store']);
     Route::get('/users', [UserController::class, 'index']);
+    Route::get('/users/{id}', [UserController::class, 'show']);
+    Route::put('/users/{id}', [UserController::class, 'update']);
+    Route::delete('/users/{id}', [UserController::class, 'delete']);
+    //get
     Route::get('/info', [UserController::class, 'info']);
-    Route::get('/user/{id}', [UserController::class, 'show']);
     //Post
     Route::post('/validateToken', [UserController::class, 'validateToken']);
     Route::post('/logout', [UserController::class, 'logout']);
-    Route::post('/user', [UserController::class, 'store']);
-    //Delete
-    Route::delete('/delete-user/{id}', [UserController::class, 'delete']);
     //Put
-    Route::put('/users/{id}', [UserController::class, 'update']);
-    Route::put('/edit-user/{id}', [UserController::class, 'update']);
     Route::put('/password/{id}', [UserController::class, 'resetPass']);
+    //Delete
 
     //CATALOGUES Routes
     //Get
     Route::get('/catalogos', [CatalogueController::class, 'show']);
 
     //CUSTOMER Routes
-    //Get
-    Route::get('/customersByVendor', [CustomerController::class, 'show']);
+    //CRUD
+    Route::post('/customers', [CustomerController::class, 'store']);
     Route::get('/customers', [CustomerController::class, 'index']);
-    Route::get('/customer/{id}', [CustomerController::class, 'showCustomer']);
-    Route::get('/customersByStatus/{status}', [CustomerController::class, 'getCustomerByStatus']);
-    Route::get('/customers/industry/{industry}', [CustomerController::class, 'getCustomersByIndustry']);
+    Route::get('/customers/{id}', [CustomerController::class, 'show']);
+    Route::put('/customers/{id}', [CustomerController::class, 'update']);
+    Route::delete('/customers/{id}', [CustomerController::class, 'destroy']);
+    //Get
+    Route::get('/customersByVendor', [CustomerController::class, 'indexByVendor']);
+    // Route::get('/customers/status/{status}', [CustomerController::class, 'getCustomerByStatus']);
+    // Route::get('/customers/industry/{industry}', [CustomerController::class, 'getCustomersByIndustry']);
+    //future link replaces status and industry routes
+    Route::get('/customers/{property}/{idProperty}', [CustomerController::class, 'getCustomersByProperty']);
+    Route::get('/prospects', [CustomerController::class, 'getAllProspects']);
     //Post
-    Route::post('/customer', [CustomerController::class, 'store']);
     //Delete
-    Route::delete('/delete-customer/{id}', [CustomerController::class, 'destroy']);
     //Put
-    Route::put('/customer/{id}', [CustomerController::class, 'update']);
     Route::put('/customerStatus/{id}/{status}', [CustomerController::class, 'updateStatus']);
     Route::put('/change-vendor/{id}/{status}', [CustomerController::class, 'changeVendor']);
     Route::put('/interests/{id}', [CustomerController::class, 'updateInterests']);
     Route::put('/customers/rejected/{id}', [CustomerController::class, 'prospectRejected']);
     //files
     Route::post('/customerImage/{id}', [CustomerController::class, 'uploadImage']);
+
+
 
     //CUSTOMER_TYPES Routes
     //Get
@@ -110,25 +116,28 @@ Route::group(['middleware' => ["auth:sanctum"]], function(){
 
     //LINK / Checklists Routes
     //Post
-    Route::post('/create-checklist', [AprobedEmailController::class, 'create']);
+    Route::post('/checklists', [AprobedEmailController::class, 'create']);
     //Delete
-    Route::delete('/delete-link/{id}', [AprobedEmailController::class, 'delete']);
+    Route::delete('/checklists/{id}', [AprobedEmailController::class, 'delete']);
     //Edit (Put/Patch)
-    Route::post('/change-link/{id}', [AprobedEmailController::class, 'changeStatus']);
+    Route::put('/checklists/status/{id}', [AprobedEmailController::class, 'changeStatus']);
+    Route::put('/checklists/{id}', [AprobedEmailController::class, 'update']);
 
     //PHOTOGRAPHY Routes
     //Delete
-    Route::delete('/contract-fotography/{id}', [FotographyController::class, 'destroy']);
+    //Route::delete('/contract-fotography/{id}', [FotographyController::class, 'destroy']);
+    Route::delete('/photography/{id}', [FotographyController::class, 'destroy']);
 
     //WEBSITES
-    //Get
-    Route::get('/websites', [WebsiteController::class, 'index']);
-    //Post
+    //CRUD
     Route::post('/websites', [WebsiteController::class, 'store']);
-    //Delete
-    Route::delete('/websites/{id}', [WebsiteController::class, 'destroy']);
-    //Update
+    Route::get('/websites', [WebsiteController::class, 'index']);
     Route::put('/websites/{id}', [WebsiteController::class, 'update']);
+    Route::delete('/websites/{id}', [WebsiteController::class, 'destroy']);
+    //Get
+    //Post
+    //Delete
+    //Update
 
     //DASHBOARD Routes
     //Get
@@ -143,9 +152,9 @@ Route::group(['middleware' => ["auth:sanctum"]], function(){
     Route::post('/comments', [CommentsController::class, 'store']);
 
     //Goals
-    //index -get
-    Route::get('/goals', [GoalsController::class, 'index']);
+    //CRUD
     Route::post('/goals', [GoalsController::class, 'store']);
+    Route::get('/goals', [GoalsController::class, 'index']);
     Route::get('/goals/{id}', [GoalsController::class, 'show']);
     Route::put('/goals/{id}', [GoalsController::class, 'update']);
 
@@ -167,11 +176,14 @@ Route::group(['middleware' => ["auth:sanctum"]], function(){
 
 //Public routes
 //checklist routes
-Route::post('/generate-checklist', [AprobedEmailController::class, 'generate']);
-Route::get('/checklist/{id}', [AprobedEmailController::class, 'store']);
-Route::post('/checklist/{id}', [AprobedEmailController::class, 'update']);
-Route::get('/all-checklist/{id}', [AprobedEmailController::class, 'show']);
+//CRUD
+Route::get('/checklists/all/{id}', [AprobedEmailController::class, 'index']);
+Route::get('/checklist/{id}', [AprobedEmailController::class, 'show']);
+Route::post('/checklist/{id}', [AprobedEmailController::class, 'approve']);
+//get
 Route::get('/checklistStatus/{id}/{aprobed}', [AprobedEmailController::class, 'showByStatus']);
+//post
+Route::post('/generate-checklist', [AprobedEmailController::class, 'generate']);
 
 //promos for customer ruleta
 Route::post('/promo-gift', [PromosController::class, 'save']);
