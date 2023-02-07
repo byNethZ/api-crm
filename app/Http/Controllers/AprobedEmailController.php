@@ -97,7 +97,8 @@ class AprobedEmailController extends Controller
         return response()->json($data, $data['code']);
     }
 
-    public function update(Request $request, $id){
+    public function update(Request $request, $id)
+    {
         $validator = Validator::make($request->all(), [
             'urldropbox' => 'required|string',
             'customer' => 'required|string',
@@ -105,7 +106,7 @@ class AprobedEmailController extends Controller
             'notes' => 'string'
         ]);
 
-        if($validator->fails()){
+        if ($validator->fails()) {
             return response()->json($validator->errors(), 400);
         }
 
@@ -179,45 +180,36 @@ class AprobedEmailController extends Controller
         return response()->json($data, $data['code']);
     }
 
-    public function index($id)
+    public function index($status)
     {
-        $user = User::find($id);
+        //$user = User::find($id);
+        $user = auth()->user();
 
         if ($user->role_id === 1) {
-            $emails = AprobedEmail::latest()->take(20)->get()->load('user');
+            if ($status === '99') {
+                $emails = AprobedEmail::latest()->with(['user' => function ($query) {
+                    $query->select('id', 'name');
+                }])->paginate(20);
+            } else {
+                $emails = AprobedEmail::latest()->where('aprobed', $status)->with(['user' => function ($query) {
+                    $query->select('id', 'name');
+                }])->paginate(20);
+            }
         } else {
-            $emails = AprobedEmail::latest()->where('user_id', $id)->take(20)->get();
+            if ($status === '99') {
+                $emails = AprobedEmail::latest()->where('user_id', $user->id)->paginate(20);
+            } else {
+                $emails = AprobedEmail::latest()->where('user_id', $user->id)->where('aprobed', $status)->paginate(20);
+            }
         }
 
         $data = [
             'code' => 200,
             'status' => 'success',
-            'user' => $user,
-            'links' => $emails
+            'links' => $emails,
         ];
 
-        return response()->json($data, $data['code']);;
-    }
-
-
-    public function showByStatus($id, $aprobed)
-    {
-        $user = User::find($id);
-
-        if ($user->role_id === 1) {
-            $emails = AprobedEmail::latest()->where('aprobed', $aprobed)->take(20)->get()->load('user');
-        } else {
-            $emails = AprobedEmail::latest()->where('user_id', $id)->where('aprobed', $aprobed)->take(20)->get();
-        }
-
-        $data = [
-            'code' => 200,
-            'status' => 'success',
-            'user' => $user,
-            'links' => $emails
-        ];
-
-        return response()->json($data, $data['code']);;
+        return response()->json($data, $data['code']);
     }
 
     public function delete($id)

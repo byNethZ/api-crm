@@ -115,6 +115,8 @@ Route::group(['middleware' => ["auth:sanctum"]], function(){
     Route::put('/ruleta/{id}', [PromosController::class, 'setDelivered']);
 
     //LINK / Checklists Routes
+    //GET
+    Route::get('/checklists/{status}', [AprobedEmailController::class, 'index']);
     //Post
     Route::post('/checklists', [AprobedEmailController::class, 'create']);
     //Delete
@@ -154,8 +156,8 @@ Route::group(['middleware' => ["auth:sanctum"]], function(){
     //Goals
     //CRUD
     Route::post('/goals', [GoalsController::class, 'store']);
-    Route::get('/goals', [GoalsController::class, 'index']);
-    Route::get('/goals/{id}', [GoalsController::class, 'show']);
+    //Route::get('/goals', [GoalsController::class, 'index']);
+    Route::get('/goals/{id}', [GoalsController::class, 'index']);
     Route::put('/goals/{id}', [GoalsController::class, 'update']);
 
     //Notificationes
@@ -177,11 +179,11 @@ Route::group(['middleware' => ["auth:sanctum"]], function(){
 //Public routes
 //checklist routes
 //CRUD
-Route::get('/checklists/all/{id}', [AprobedEmailController::class, 'index']);
+//Route::get('/checklists/all/{id}', [AprobedEmailController::class, 'index']);
 Route::get('/checklist/{id}', [AprobedEmailController::class, 'show']);
 Route::post('/checklist/{id}', [AprobedEmailController::class, 'approve']);
 //get
-Route::get('/checklistStatus/{id}/{aprobed}', [AprobedEmailController::class, 'showByStatus']);
+//Route::get('/checklistStatus/{id}/{aprobed}', [AprobedEmailController::class, 'showByStatus']);
 //post
 Route::post('/generate-checklist', [AprobedEmailController::class, 'generate']);
 
