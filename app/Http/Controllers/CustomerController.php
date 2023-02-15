@@ -24,7 +24,7 @@ class CustomerController extends Controller
 
         if ($userAuth->role_id === 1 || $userAuth->id === 3) {
 
-            $customers = Customer::where('status', '=', 5)->orderBy('id', 'DESC')->get();
+            $customers = Customer::where('status', '=', 5)->orderBy('id', 'DESC')->paginate(40);
         } else {
             $id = 10;
 
@@ -32,7 +32,7 @@ class CustomerController extends Controller
                 $id = $userAuth->id;
             }
 
-            $customers = Customer::where('vendor_id', $id)->where('status', '=', 5)->orderBy('id', 'DESC')->get();
+            $customers = Customer::where('vendor_id', $id)->where('status', '=', 5)->orderBy('id', 'DESC')->paginate(40);
         }
 
         $data = [
@@ -152,9 +152,9 @@ class CustomerController extends Controller
         $customer = Customer::find($id);
         $dateFormatted = date('Y-m-d', strtotime($request->birthday));
         $dataChanged = $request->merge(['birthday' => $dateFormatted]);
-        $customer->update($dataChanged->all());
+        $customer->update($dataChanged->except('image'));
 
-        return $request;
+        return $dataChanged;
     }
 
     public function prospectRejected(Request $request, $id)
@@ -257,7 +257,7 @@ class CustomerController extends Controller
 
         if ($userAuth->role_id === 1 || $userAuth->id === 3) {
 
-            $customers = Customer::where($property, '=', $idProperty)->with('interests')->with('industry')->with('vendor')->orderBy('id', 'DESC')->get();
+            $customers = Customer::where($property, '=', $idProperty)->with('interests')->with('industry')->with('vendor')->orderBy('id', 'DESC')->paginate(40);
         } else {
             $id = 10;
 
@@ -267,7 +267,7 @@ class CustomerController extends Controller
 
             }
 
-            $customers = Customer::where('vendor_id', $id)->where($property, '=', $idProperty)->with('interests')->with('industry')->with('vendor')->orderBy('id', 'DESC')->get();
+            $customers = Customer::where('vendor_id', $id)->where($property, '=', $idProperty)->with('interests')->with('industry')->with('vendor')->orderBy('id', 'DESC')->paginate(40);
         }
 
         $data = [
@@ -290,91 +290,31 @@ class CustomerController extends Controller
                 ->where('status', '!=', 6)
                 ->with('interests')->with('industry')->with('vendor')
                 ->orderBy('id', 'DESC')
-                ->paginate(50);
-                //->paginate(2);
+                ->paginate(40);
         } else {
-            $id = 10;
+            $id = 2;
 
-            if($userAuth->departament_id == 4 || $userAuth->departament_alt_id == 4){
+            if($userAuth->departament_id === 4 || $userAuth->departament_alt_id === 4){
                 $id = $userAuth->id;
             }
 
             $customers = Customer::where('vendor_id', $id)
-                ->where('status', '=', 4)
-                ->where('status', '=', 5)
-                ->where('status', '=', 6)
+                ->where('status', '!=', 4)
+                ->where('status', '!=', 5)
+                ->where('status', '!=', 6)
                 ->with('interests')->with('industry')->with('vendor')
                 ->orderBy('id', 'DESC')
-                ->paginate(50);
-                //->paginate(2);
+                ->paginate(40);
         }
 
         $data = [
             'code' => 200,
             'status' => 'success',
-            'prospects' => $customers
+            'prospects' => $customers,
         ];
 
         return response()->json($data, $data['code']);
     }
-
-    //Clear this function when the corresponding services in client have been updated
-/*     public function getCustomerByStatus($status)
-    {
-        $userAuth = auth()->user();
-
-        if ($userAuth->role_id === 1 || $userAuth->id === 3) {
-
-            $customers = Customer::where('status', '=', $status)->with('interests')->with('industry')->with('vendor')->orderBy('id', 'DESC')->get();
-        } else {
-            $id = 10;
-
-            if($userAuth->departament_id == 4 || $userAuth->departament_alt_id == 4){
-
-                $id = $userAuth->id;
-                $customers = Customer::where('vendor_id', $id)->where('status', '=', $status)->with('interests')->with('industry')->orderBy('id', 'DESC')->get();
-
-            } else {
-
-                $customers = Customer::where('status', '=', $status)->with('interests')->with('industry')->with('vendor')->orderBy('id', 'DESC')->get();
-            }
-
-        }
-
-        $data = [
-            'code' => 200,
-            'status' => 'success',
-            'customers' => $customers
-        ];
-
-        return response()->json($data, $data['code']);
-    } */
-
-    //Clear this function when the corresponding services in client have been updated
-/*     public function getCustomersByIndustry($industry){
-        $userAuth = auth()->user();
-
-        if ($userAuth->role_id === 1 || $userAuth->id === 3) {
-
-            $customers = Customer::where('type_id', '=', $industry)->with('interests')->with('vendor')->orderBy('id', 'DESC')->get();
-        } else {
-            $id = 10;
-
-            if($userAuth->departament_id == 4 || $userAuth->departament_alt_id == 4){
-                $id = $userAuth->id;
-            }
-
-            $customers = Customer::where('vendor_id', $id)->where('type_id', '=', $industry)->with('interests')->orderBy('id', 'DESC')->get();
-        }
-
-        $data = [
-            'code' => 200,
-            'status' => 'success',
-            'customers' => $customers
-        ];
-
-        return response()->json($data, $data['code']);
-    } */
 
     public function updateStatus($id, $status){
         $userAuth = auth()->user();
@@ -427,24 +367,27 @@ class CustomerController extends Controller
         $customer = Customer::find($id);
         $image_name = 'default.jpg';
 
-        $prevImage = isset($customer->image) ? $customer->image : 'default.jpg';
+        $prevImage = $customer->image;
         $exists = false;
 
         if($request->hasFile('image')){
             $image_name = time().$request->file('image')->getClientOriginalName();
             $fileName = $request->file('image')->storeAs('public/customers', $image_name);
 
-            if(isset($customer->image) && File::exists('storage/customers/'.$customer->image)){
+            if(File::exists('storage/customers/'.$customer->image)){
                 File::delete('storage/customers/'.$customer->image);
                 $exists = true;
             }
 
-            $customer->image = $image_name;
-            $customer->save();
+            $customer->update([
+                'image' => $image_name
+            ]);
         }
+
         $data = [
             'prevImage' => $prevImage,
             'newImage' => $customer->image,
+            'customer' => $customer,
             'exists' => $exists
         ];
 
