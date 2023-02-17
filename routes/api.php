@@ -68,11 +68,11 @@ Route::group(['middleware' => ["auth:sanctum"]], function(){
     Route::put('/customers/{id}', [CustomerController::class, 'update']);
     Route::delete('/customers/{id}', [CustomerController::class, 'destroy']);
     //Get
-    Route::get('/customersByVendor', [CustomerController::class, 'indexByVendor']);
+    Route::get('/customersByVendor/{customerID}', [CustomerController::class, 'indexByVendor']);
     // Route::get('/customers/status/{status}', [CustomerController::class, 'getCustomerByStatus']);
     // Route::get('/customers/industry/{industry}', [CustomerController::class, 'getCustomersByIndustry']);
     //future link replaces status and industry routes
-    Route::get('/customers/{property}/{idProperty}', [CustomerController::class, 'getCustomersByProperty']);
+    Route::get('/customers/{property}/{idProperty}/{vendorID}', [CustomerController::class, 'getCustomersByProperty']);
     Route::get('/prospects', [CustomerController::class, 'getAllProspects']);
     //Post
     //Delete

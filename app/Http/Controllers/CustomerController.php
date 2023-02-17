@@ -18,21 +18,15 @@ use Twilio\Rest\Client;
 
 class CustomerController extends Controller
 {
-    public function indexByVendor()
+    public function indexByVendor($customerID)
     {
-        $userAuth = auth()->user();
 
-        if ($userAuth->role_id === 1 || $userAuth->id === 3) {
+        if ($customerID === '99') {
 
             $customers = Customer::where('status', '=', 5)->orderBy('id', 'DESC')->paginate(40);
         } else {
-            $id = 10;
 
-            if($userAuth->departament_id == 4 || $userAuth->departament_alt_id == 4){
-                $id = $userAuth->id;
-            }
-
-            $customers = Customer::where('vendor_id', $id)->where('status', '=', 5)->orderBy('id', 'DESC')->paginate(40);
+            $customers = Customer::where('vendor_id', $customerID)->where('status', '=', 5)->orderBy('id', 'DESC')->paginate(40);
         }
 
         $data = [
@@ -109,7 +103,7 @@ class CustomerController extends Controller
 
     public function index()
     {
-        $customers = Customer::orderBy('id', 'DESC')->get();
+        $customers = Customer::orderBy('id', 'DESC')->select('vendor_id','status','phone','business','name','surname','address','email')->get();
 
         $data = [
             'code' => 200,
@@ -252,22 +246,13 @@ class CustomerController extends Controller
     }
 
     //This function will replace functions "getCustomerByStatus" and "getCustomersByIndustry" after modifying services in client
-    public function getCustomersByProperty($property, $idProperty){
-        $userAuth = auth()->user();
+    public function getCustomersByProperty($property, $idProperty, $vendorID){
 
-        if ($userAuth->role_id === 1 || $userAuth->id === 3) {
+        if ($vendorID === '99') {
 
             $customers = Customer::where($property, '=', $idProperty)->with('interests')->with('industry')->with('vendor')->orderBy('id', 'DESC')->paginate(40);
         } else {
-            $id = 10;
-
-            if($userAuth->departament_id == 4 || $userAuth->departament_alt_id == 4){
-
-                $id = $userAuth->id;
-
-            }
-
-            $customers = Customer::where('vendor_id', $id)->where($property, '=', $idProperty)->with('interests')->with('industry')->with('vendor')->orderBy('id', 'DESC')->paginate(40);
+            $customers = Customer::where('vendor_id', $vendorID)->where($property, '=', $idProperty)->with('interests')->with('industry')->with('vendor')->orderBy('id', 'DESC')->paginate(40);
         }
 
         $data = [

@@ -22,15 +22,32 @@ class WhatsAppChannel
         $this->utils = new Utils;
         $this->twilio = new Client(config('services.twilio.sid'), config('services.twilio.token'));
 
+        //$this->salesLeaderPhone = env('SALES_LEADER_PHONE');
+        //$this->menusLeaderPhone = env('MENUS_LEADER_PHONE');
+        //$this->ceoPhone = env('CEO_PHONE');
+
+        //$salesLeader = User::where('departament_id','=',4)->where('role_id', '=', 1)->first();
+        //$menusLeader = User::where('departament_id','=',6)->where('role_id', '=', 1)->first();
+        //$ceo = User::where('departament_id','=',1)->where('role_id', '=', 1)->first();
+
+        $this->salesLeaderPhone = $this->getPhoneLeader(4);
+        $this->menusLeaderPhone = $this->getPhoneLeader(6);
+        $this->ceoPhone = $this->getPhoneLeader(1);
+
         //$this->salesLeaderPhone = '+14235910238';
-        $this->menusLeaderPhone = '+5216441003044';
-        $this->ceoPhone = '+14234322492';
+        //$this->menusLeaderPhone = '+14235911826';
+        //$this->ceoPhone = '+14234322492';
 
         //$this->salesLeaderPhone = '+5215538150607';
-        $this->salesLeaderPhone = '+5219841533143';
+        //$this->salesLeaderPhone = '+5219841533143';
         //$this->menusLeaderPhone = '+5219841533143';
         //$this->ceoPhone = '+5219841533143';
 
+    }
+
+    private function getPhoneLeader($departament_id): string{
+        $leader = User::where('departament_id','=',$departament_id)->where('role_id', '=', 1)->first();
+        return $leader->public_phone ? $leader->public_phone : $leader->personal_phone;
     }
 
     public function notifyChangeStatus($userAuth, $customer, $status, $industry)
@@ -42,7 +59,7 @@ class WhatsAppChannel
 
         $phoneUser = $user->public_phone ? $user->public_phone : $user->personal_phone;
 
-        $messageUser = "🔃 Has modificado el estatus del cliente:\n" . $customer->name . "\n Industria: " . $industryFormated . "\nEstado: " . $status;
+        $messageUser = "🔃 Has modificado el estatus del cliente:\n" . $customer->name . "\nIndustria: " . $industryFormated . "\nEstado: " . $status;
         $messageLeader = "🔃 " . $userAuth->name . " ha modificado el estatus del cliente:\n" . $customer->name .  "\n Industria: " . $industryFormated . "\nEstado: " . $status;
 
         if ($userAuth->id === 2) {
@@ -77,17 +94,17 @@ class WhatsAppChannel
                 }
             }
 
-            $messageNormal = "🔰 Has registrado al siguiente prospecto:\n" . $customer->name .  "\nIndustria: " . $industryFormated . "\nIntereses:\n" . $interestsString;
+            $messageNormal = "🥳 Has registrado al siguiente prospecto:\n" . $customer->name .  "\nIndustria: " . $industryFormated . "\nIntereses:\n" . $interestsString;
 
             if($user->departament_id === 8 || $user->departament_alt_id === 8 ){
 
                 $vendor = User::find($customer->vendor_id);
                 $messageNormal .= "\nAsignado a: " . $vendor->name;
-                $messageLeader = "🔰 " . $userAuth->name . ", del Departamento de Marketing, ha registrado al siguiente prospecto:\n" . $customer->name .  "\nIndustria: " . $industryFormated . "\nIntereses:\n" . $interestsString . "\nAsignado a: " . $vendor->name;
+                $messageLeader = "🥳 " . $userAuth->name . ", del Departamento de Marketing, ha registrado al siguiente prospecto:\n" . $customer->name .  "\nIndustria: " . $industryFormated . "\nIntereses:\n" . $interestsString . "\nAsignado a: " . $vendor->name;
 
             } else {
 
-                $messageLeader = "🔰 " . $userAuth->name . " ha registrado al siguiente prospecto:\n" . $customer->name .  "\nIndustria: " . $industryFormated . "\nIntereses:\n" . $interestsString;
+                $messageLeader = "🥳 " . $userAuth->name . ", del Departamento de Ventas, ha registrado al siguiente prospecto:\n" . $customer->name .  "\nIndustria: " . $industryFormated . "\nIntereses:\n" . $interestsString;
             }
 
         } else {
@@ -165,7 +182,7 @@ class WhatsAppChannel
             $messageNormal .= "\nObservaciones del cliente: \n" . $aprobedEmailUpdate->message;
         }
 
-        $messageLeader = $messageNormal . "\n" . $iconsCelebration . " _Proyecto de: " . $user->name . $iconsCelebration . "_";
+        $messageLeader = $messageNormal . "\n" . $iconsCelebration . " _Proyecto de: " . $user->name . "_ " . $iconsCelebration;
 
         if ($user->role_id === 1) {
 
@@ -197,12 +214,13 @@ class WhatsAppChannel
 
         $messageLeader .= "Total de prospectos desde Marketing: " . $totalDigital->total . "\n";
 
-        foreach( $dataMarketing as $value ) {
+        //section rejected by WhatsApp review
+        //foreach( $dataMarketing as $value ) {
 
-            $messageLeader .= $value->name . ": " . $value->total . "\n";
+            //$messageLeader .= $value->name . ": " . $value->total . "\n";
             //$messageLeader .= $value['name'];
 
-        }
+        //}
 
         /*
             Reporte diario de prospectos

@@ -20,6 +20,7 @@ class DashboardController extends Controller
                 ->join('states', 'states.id', '=', 'customers.state_id')
                 ->select('state_id', DB::raw('count(*) as total'), 'states.state_name', 'states.lat', 'states.lng')
                 ->groupBy('state_id')
+                ->orderBy('total', 'DESC')
                 ->get();
 
             $countByCategory = DB::table('customers')
@@ -42,6 +43,7 @@ class DashboardController extends Controller
                 ->join('states', 'states.id', '=', 'customers.state_id')
                 ->select('state_id', DB::raw('count(*) as total'), 'states.state_name', 'states.lat', 'states.lng')
                 ->groupBy('state_id')
+                ->orderBy('total', 'DESC')
                 ->get();
 
             $countByCategory = DB::table('customers')
@@ -59,7 +61,7 @@ class DashboardController extends Controller
                 ->get();
         }
         $data = [
-            'code' => 201,
+            'code' => 200,
             'countByState' => $countByState,
             'countByCategory' => $countByCategory,
             'customersByStatus' => $customersByStatus,
@@ -75,6 +77,7 @@ class DashboardController extends Controller
             ->join('states', 'states.id', '=', 'customers.state_id')
             ->select('state_id', DB::raw('count(*) as total'), 'states.state_name', 'states.lat', 'states.lng')
             ->groupBy('state_id')
+            ->orderBy('total', 'DESC')
             ->get();
 
         $countByCategory = DB::table('customers')
@@ -92,7 +95,7 @@ class DashboardController extends Controller
             ->get();
 
         $data = [
-            'code' => 201,
+            'code' => 200,
             'countByState' => $countByState,
             'countByCategory' => $countByCategory,
             'customersByStatus' => $customersByStatus,
@@ -112,7 +115,7 @@ class DashboardController extends Controller
 
 
         $data = [
-            'code' => 201,
+            'code' => 200,
             'customerByVendor' => $customersByVendor
         ];
         return response()->json($data, $data['code']);
