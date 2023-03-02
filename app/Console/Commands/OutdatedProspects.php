@@ -42,7 +42,6 @@ class OutdatedProspects extends Command
      */
     public function handle()
     {
-        $arrayResult = [];
         $message = new WhatsAppChannel;
         $olderThanFiveDays = Carbon::now()->subDays(5)->toDateTimeString();
         $users = User::where('departament_id', '=', 4)->get();
@@ -54,18 +53,6 @@ class OutdatedProspects extends Command
 
             $phoneUser = $user->public_phone ? $user->public_phone : $user->personal_phone;
 
-            $vendorArray = [
-                'vendor' => $user->name
-            ];
-
-            $customersOutdated = Customer::Where('vendor_id', '=', $user->id)
-            ->where('status', '!=', 4)
-            ->where('status', '!=', 5)
-            ->where('status', '!=', 6)
-            ->where('updated_at', '<',  $olderThanFiveDays)
-            ->select('customers.name', 'customers.status')
-            ->get();
-
             $customersOutdatedByVendor = Customer::Where('vendor_id', '=', $user->id)
             ->where('status', '!=', 4)
             ->where('status', '!=', 5)
@@ -75,24 +62,26 @@ class OutdatedProspects extends Command
             ->select(DB::raw('count(*) as total'), 'customers.status')
             ->get();
 
-            if(count($customersOutdated)){
-                //sending whatsapp to user
-                $vendorArray = [...$vendorArray, 'customersOutdated' => $customersOutdatedByVendor];
-                $arrayResult = [...$arrayResult, $vendorArray];
-                $message->sendOutdatedCustomersMessage($phoneUser, $customersOutdated);
-
-            }
+            $message->sendOutdatedCustomersMessage($phoneUser, $customersOutdatedByVendor);
 
         }
 
         //to Selene
-        $message->sendOutdatedCustomersMessage($leaderSalesPhone, $arrayResult, true);
+        $customersOutdated = Customer::where('status', '!=', 4)
+        ->where('status', '!=', 5)
+        ->where('status', '!=', 6)
+        ->where('updated_at', '<',  $olderThanFiveDays)
+        ->groupBy('customers.status')
+        ->select(DB::raw('count(*) as total'), 'customers.status')
+        ->get();
+
+        $message->sendOutdatedCustomersMessage($leaderSalesPhone, $customersOutdated, true);
 
         //marketing users
         foreach($usersMarketing as $user ){
             $phoneUser = $user->public_phone ? $user->public_phone : $user->personal_phone;
 
-            $message->sendOutdatedCustomersMessage($phoneUser, $arrayResult, true);
+            $message->sendOutdatedCustomersMessage($phoneUser, $customersOutdated, true);
         }
 
         return 0;

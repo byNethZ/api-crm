@@ -39,7 +39,11 @@ class NotificationsTasks extends Command
      */
     public function handle()
     {
-        $users = User::all();
+        $users = User::where('departament_id', '=', 4)
+            ->orWhere('departament_alt_id', '=', 4)
+            ->orWhere('departament_id', '=', 8)
+            ->orWhere('departament_alt_id', '=', 8)
+            ->get();
 
         foreach ($users as $user) {
             $message = new WhatsAppChannel;

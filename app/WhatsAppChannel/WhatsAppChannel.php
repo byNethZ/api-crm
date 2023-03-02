@@ -22,26 +22,9 @@ class WhatsAppChannel
         $this->utils = new Utils;
         $this->twilio = new Client(config('services.twilio.sid'), config('services.twilio.token'));
 
-        //$this->salesLeaderPhone = env('SALES_LEADER_PHONE');
-        //$this->menusLeaderPhone = env('MENUS_LEADER_PHONE');
-        //$this->ceoPhone = env('CEO_PHONE');
-
-        //$salesLeader = User::where('departament_id','=',4)->where('role_id', '=', 1)->first();
-        //$menusLeader = User::where('departament_id','=',6)->where('role_id', '=', 1)->first();
-        //$ceo = User::where('departament_id','=',1)->where('role_id', '=', 1)->first();
-
         $this->salesLeaderPhone = $this->getPhoneLeader(4);
         $this->menusLeaderPhone = $this->getPhoneLeader(6);
         $this->ceoPhone = $this->getPhoneLeader(1);
-
-        //$this->salesLeaderPhone = '+14235910238';
-        //$this->menusLeaderPhone = '+14235911826';
-        //$this->ceoPhone = '+14234322492';
-
-        //$this->salesLeaderPhone = '+5215538150607';
-        //$this->salesLeaderPhone = '+5219841533143';
-        //$this->menusLeaderPhone = '+5219841533143';
-        //$this->ceoPhone = '+5219841533143';
 
     }
 
@@ -198,21 +181,22 @@ class WhatsAppChannel
     {
         $leaderPhone = empty($phone) ? $this->salesLeaderPhone : $phone;
 
-        $messageLeader = "Reporte ".$lapse." de prospectos\n📥 Prospectos nuevos totales - " . $total->total. "\n✅ Prospectos individuales\n";
+        //$messageLeader = "Reporte ".$lapse." de prospectos\n📥 Prospectos nuevos totales - " . $total->total. "\n✅ Prospectos individuales\n";
+        $messageLeader = "Reporte ".$lapse." de prospectos\n📥 Prospectos nuevos totales - " . $total->total;
 
-        foreach ($data as $value) {
-            $statusString = "";
-            $arrayStatus = $value['status'];
+        // foreach ($data as $value) {
+        //     $statusString = "";
+        //     $arrayStatus = $value['status'];
 
-            foreach ($arrayStatus as $status) {
-                $statusString .= $status->total . " " . $this->utils->formatStatusEmoticons($status->status) . ", ";
-            }
+        //     foreach ($arrayStatus as $status) {
+        //         $statusString .= $status->total . " " . $this->utils->formatStatusEmoticons($status->status) . ", ";
+        //     }
 
-            $messageLeader .= $value['name'] . " (" . $value['total'] . ") - " . $statusString . "\n";
-            $statusString = "";
-        }
+        //     $messageLeader .= $value['name'] . " (" . $value['total'] . ") - " . $statusString . "\n";
+        //     $statusString = "";
+        // }
 
-        $messageLeader .= "Total de prospectos desde Marketing: " . $totalDigital->total . "\n";
+        $messageLeader .= "\nTotal de prospectos desde Marketing: " . $totalDigital->total . "\n";
 
         //section rejected by WhatsApp review
         //foreach( $dataMarketing as $value ) {
@@ -241,30 +225,23 @@ class WhatsAppChannel
     }
 
     public function sendOutdatedCustomersMessage($phone, $outdatedCustomers, $toLeader = false){
+        $statusArray = ['0', '1', '2', '3'];
+        $message = "";
+
 
         if(!$toLeader){
-            $message = "Tienes desactualizados los siguientes clientes\n\n";
+            $message .= "Tienes desactualizados los siguientes clientes\n\n";
 
-            foreach($outdatedCustomers as $statusData){
-                $message .= $this->utils->formatStatusEmoticons($statusData->status) . ": " . $statusData->name . "\n";
-            }
-
-            $message .= "\nPuedes revisarlos de manera detallada en tu panel de prospectos";
         } else {
-            $message = "Están desactualizados los siguiente clientes\n\n";
-
-            foreach($outdatedCustomers as $statusData){
-                $message .= "\n" . $statusData['vendor'] . ":\n";
-
-                foreach($statusData['customersOutdated'] as $customers){
-                    $message .= $this->utils->formatStatus($customers->status, true) . ": " . $customers->total . "\n";
-                }
-            }
-
-            $message .= "\nPuedes revisarlos de manera detallada en tu panel de prospectos";
-
+            $message .= "Están desactualizados los siguientes clientes\n\n";
 
         }
+
+        foreach($statusArray as $status){
+            $message .= $this->utils->formatStatus($status, true) . ": " . $this->getTotalByStatus($status, $outdatedCustomers) . "\n";
+        }
+
+        $message .= "\nPuedes revisarlos de manera detallada en tu panel de prospectos";
 
 
         try {
@@ -297,5 +274,18 @@ class WhatsAppChannel
         } catch (Exception $e) {
             echo 'Error is: ',  $e->getMessage(), "\n";
         }
+    }
+
+    private function getTotalByStatus(string $status, $outdatedData ): int {
+        $statusInt = intval($status);
+        $total = 0;
+
+        foreach($outdatedData as $statusData){
+            if($statusData->status === $statusInt){
+                $total = $statusData->total;
+            }
+        }
+
+        return $total;
     }
 }

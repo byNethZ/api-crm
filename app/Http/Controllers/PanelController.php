@@ -125,16 +125,29 @@ class PanelController extends Controller
 
     public function terminal()
     {
-        $interests = ProspectInterest::where('customer_id', '=', 453)->first();
-        $interestsJSON = json_decode($interests->interests);
+        $olderThanFiveDays = Carbon::now()->subDays(5)->toDateTimeString();
 
+        $customersOutdated = Customer::Where('vendor_id', '=', 10)
+        ->where('status', '!=', 4)
+        ->where('status', '!=', 5)
+        ->where('status', '!=', 6)
+        ->where('updated_at', '<',  $olderThanFiveDays)
+        ->groupBy('customers.status')
+        ->select(DB::raw('count(*) as total'), 'customers.status')
+        ->get();
 
-
-
+        $customersOutdatedByVendor = Customer::where('status', '!=', 4)
+        ->where('status', '!=', 5)
+        ->where('status', '!=', 6)
+        ->where('updated_at', '<',  $olderThanFiveDays)
+        ->groupBy('customers.status')
+        ->select(DB::raw('count(*) as total'), 'customers.status')
+        ->get();
 
         $data = [
             'code' => 200,
-            'result' => $interestsJSON,
+            'customersOutdated' => $customersOutdated,
+            'customersOutdatedByVendor' => $customersOutdatedByVendor,
         ];
 
         return response()->json($data, $data['code']);
