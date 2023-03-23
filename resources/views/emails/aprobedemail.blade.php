@@ -8,10 +8,20 @@
 </head>
 <body>
     <h1 style="text-align: center;">Checklist de seguimiento menus</h1>
-    <h4 style="text-align: center;">El cliente {{ $customer }} ha confirmado que su proyecto esta aprobado</h4>
-    <h4 style="text-align: center;">El proyecto fue aprobado por: {{ $approver }} </h4>
+    <h4 style="text-align: center;">El cliente {{ $checklist->customer }} ha confirmado que su proyecto esta {{intval($checklist->aprobed) === 1 ? 'Aprobado' : 'Declinado' }}</h4>
+    <h4 style="text-align: center;">El proyecto fue revisado por: {{ $checklist->approver }} </h4>
 
-    <img src="{{$gifCelebration}}" alt="Aprobado" style="display: block; margin-left:auto; margin-right:auto;">
+    @if (intval($checklist->aprobed) !== 1)
+        <h3 style="text-align: center;">Observaciones del cliente:</h3>
+        <p style="text-align: center;">{{$checklist->message}}</p>
+
+    @endif
+
+    @if (intval($checklist->aprobed) === 1)
+        <img src="{{$gifCelebration}}" alt="Aprobado" style="display: block; margin-left:auto; margin-right:auto;">
+
+    @endif
+
 
 
 </body>
