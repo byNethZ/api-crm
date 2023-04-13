@@ -1,0 +1,19 @@
+runtime: php
+env: flex
+
+runtime_config:
+  document_root: web
+  enable_stackdriver_integration: true
+
+# Ensure we skip ".env", which is only for local development
+skip_files:
+  - .env
+
+env_variables:
+  LOG_CHANNEL: stackdriver
+  APP_KEY: base64:xB66roiCGrJI1fggt8jZVyUZc3JMQizKagJa3dsXrX0=
+  # Replace user, password, database, and instance with your values.
+  DB_HOST: crm-bliones-383416:us-east1:db-bliones
+  DB_DATABASE: crm-bliones
+  DB_USERNAME: root
+  DB_PASSWORD: XN$X9;tPl3`~1#oB
