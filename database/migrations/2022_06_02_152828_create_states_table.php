@@ -18,6 +18,8 @@ return new class extends Migration
             $table->integer('country_id');
             $table->string('state_name');
             $table->string('state_code');
+            $table->decimal('lat', 10, 6)->nullable();
+            $table->decimal('lng', 11, 6)->nullable();
         });
     }
 

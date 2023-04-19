@@ -21,7 +21,8 @@ return new class extends Migration
             $table->string('email');
             $table->string('gift');
             $table->string('asesor');
-            $table->string('delivered');
+            $table->integer('delivered');
+            $table->string('season')->nullable();
             $table->timestamps();
         });
     }

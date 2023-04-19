@@ -16,9 +16,14 @@ return new class extends Migration
         Schema::create('aprobedemails', function (Blueprint $table) {
             $table->id();
             $table->string('customer');
+            $table->integer('customer_id');
             $table->string('user_id');
+            $table->string('type', 20)->nullable();
+            $table->string('notes', 700)->nullable();
             $table->string('urldropbox');
             $table->integer('aprobed');
+            $table->string('approver');
+            $table->string('message');
             $table->timestamps();
         });
     }

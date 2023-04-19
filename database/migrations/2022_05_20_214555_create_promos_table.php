@@ -15,8 +15,14 @@ return new class extends Migration
     {
         Schema::create('promos', function (Blueprint $table) {
             $table->id();
+            $table->string('name');
+            $table->string('lastname');
+            $table->string('phone');
             $table->string('email');
             $table->string('gift');
+            $table->string('asesor');
+            $table->integer('delivered');
+            $table->string('season')->nullable();
             $table->timestamps();
         });
     }

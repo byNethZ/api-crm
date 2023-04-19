@@ -16,12 +16,13 @@ return new class extends Migration
         Schema::create('websites', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('url');
             $table->integer('customer_id')->nullable();
-            $table->date('initial_date');
+            $table->date('initial_date')->nullable();
             $table->date('end_date')->nullable();
-            $table->string('service');
-            $table->string('payment');
-            $table->string('invoice');
+            $table->string('service')->nullable();
+            $table->string('payment')->nullable();
+            $table->string('invoice')->nullable();
             $table->integer('invoice_id')->nullable();
             $table->decimal('payment_received')->nullable();
             $table->integer('payment_method')->nullable();

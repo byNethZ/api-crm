@@ -16,6 +16,8 @@ return new class extends Migration
         Schema::create('departaments', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->integer('leader_id');
+            $table->integer('public')->nullable();
         });
     }
 

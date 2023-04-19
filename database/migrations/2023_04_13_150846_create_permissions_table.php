@@ -13,8 +13,11 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('promos', function (Blueprint $table) {
-            $table->string('asesor')->after('gift');
+        Schema::create('permissions', function (Blueprint $table) {
+            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('departament_id');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('departament_id')->references('id')->on('departaments');
         });
     }
 
@@ -25,8 +28,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('promos', function (Blueprint $table) {
-            $table->dropColumn('asesor');
-        });
+        Schema::dropIfExists('permissions');
     }
 };
