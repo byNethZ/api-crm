@@ -15,7 +15,8 @@ use Illuminate\Support\Facades\Mail;
 
 class PanelController extends Controller
 {
-    public function sendReports($id, $mode = 'day'){
+    public function sendReports($id, $mode = 'day')
+    {
 
         $user = User::find($id);
         $utils = new Utils();
@@ -23,20 +24,20 @@ class PanelController extends Controller
 
         $phone = $user->public_phone ? $user->public_phone : $user->personal_phone;
 
-        if( $mode === 'month' ) {
+        if ($mode === 'month') {
 
             $now = Carbon::now();
             $start = $now->startOfMonth()->format('Y-m-d H:i');
             $end = $now->endOfMonth()->format('Y-m-d H:i');
         }
 
-        if( $mode === 'week') {
+        if ($mode === 'week') {
             $now = Carbon::now();
             $start = $now->startOfWeek()->format('Y-m-d H:i');
             $end = $now->endOfWeek()->format('Y-m-d H:i');
         }
 
-        if( $mode === 'day' ){
+        if ($mode === 'day') {
             $start = Carbon::today('America/New_York');
             $end = Carbon::today('America/New_York')->endOfDay();
 
@@ -89,15 +90,15 @@ class PanelController extends Controller
 
         $data = $utils->mergeArrays($customersTotalByVendor->toArray(), $customersTotalStatus->toArray());
 
-        if( $mode === 'day' ) {
+        if ($mode === 'day') {
             $message->prospectsDaily($customersTotal[0], $data, $customersTotalDigital[0], 'diario', $customersTotalByMarketing->toArray(), $phone);
         }
 
-        if( $mode === 'week' ) {
+        if ($mode === 'week') {
             $message->prospectsDaily($customersTotal[0], $data, $customersTotalDigital[0], 'semanal', $customersTotalByMarketing->toArray(), $phone);
         }
 
-        if( $mode === 'month' ) {
+        if ($mode === 'month') {
             $message->prospectsDaily($customersTotal[0], $data, $customersTotalDigital[0], 'mensual', $customersTotalByMarketing->toArray(), $phone);
         }
         //$message->prospectsDaily(0, 0, 0);
@@ -111,13 +112,14 @@ class PanelController extends Controller
 
 
 
-    public function checkMessage($id){
+    public function checkMessage($id)
+    {
         $user = User::find($id);
         $message = new WhatsAppChannel();
 
         $phone = $user->public_phone ? $user->public_phone : $user->personal_phone;
 
-        $message->sendMessage($phone, "Prueba de mensaje");
+        $message->sendMessage($phone, "Testing de mensaje. No contestar. Gracias.");
 
         return;
     }
@@ -128,21 +130,21 @@ class PanelController extends Controller
         $olderThanFiveDays = Carbon::now()->subDays(5)->toDateTimeString();
 
         $customersOutdated = Customer::Where('vendor_id', '=', 10)
-        ->where('status', '!=', 4)
-        ->where('status', '!=', 5)
-        ->where('status', '!=', 6)
-        ->where('updated_at', '<',  $olderThanFiveDays)
-        ->groupBy('customers.status')
-        ->select(DB::raw('count(*) as total'), 'customers.status')
-        ->get();
+            ->where('status', '!=', 4)
+            ->where('status', '!=', 5)
+            ->where('status', '!=', 6)
+            ->where('updated_at', '<',  $olderThanFiveDays)
+            ->groupBy('customers.status')
+            ->select(DB::raw('count(*) as total'), 'customers.status')
+            ->get();
 
         $customersOutdatedByVendor = Customer::where('status', '!=', 4)
-        ->where('status', '!=', 5)
-        ->where('status', '!=', 6)
-        ->where('updated_at', '<',  $olderThanFiveDays)
-        ->groupBy('customers.status')
-        ->select(DB::raw('count(*) as total'), 'customers.status')
-        ->get();
+            ->where('status', '!=', 5)
+            ->where('status', '!=', 6)
+            ->where('updated_at', '<',  $olderThanFiveDays)
+            ->groupBy('customers.status')
+            ->select(DB::raw('count(*) as total'), 'customers.status')
+            ->get();
 
         $data = [
             'code' => 200,

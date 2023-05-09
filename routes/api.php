@@ -9,6 +9,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FoodbankController;
 use App\Http\Controllers\FotographyController;
 use App\Http\Controllers\GoalsController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PanelController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PromosController;
@@ -38,7 +39,7 @@ Route::post('/login', [UserController::class, 'login']);
 
 
 //Rutas de sistema
-Route::group(['middleware' => ["auth:sanctum"]], function(){
+Route::group(['middleware' => ["auth:sanctum"]], function () {
 
     //USER Routes
     //CRUD
@@ -50,7 +51,7 @@ Route::group(['middleware' => ["auth:sanctum"]], function(){
     //get
     Route::get('/info', [UserController::class, 'info']);
     //Post
-    Route::post('/validateToken', [UserController::class, 'validateToken']);
+    Route::post('/validate_token', [UserController::class, 'validateToken']);
     Route::post('/logout', [UserController::class, 'logout']);
     //Put
     Route::put('/password/{id}', [UserController::class, 'resetPass']);
@@ -68,21 +69,23 @@ Route::group(['middleware' => ["auth:sanctum"]], function(){
     Route::put('/customers/{id}', [CustomerController::class, 'update']);
     Route::delete('/customers/{id}', [CustomerController::class, 'destroy']);
     //Get
-    Route::get('/customersByVendor/{customerID}', [CustomerController::class, 'indexByVendor']);
+    Route::get('/customers_by_vendor/{customerID}', [CustomerController::class, 'indexByVendor']);
     // Route::get('/customers/status/{status}', [CustomerController::class, 'getCustomerByStatus']);
     // Route::get('/customers/industry/{industry}', [CustomerController::class, 'getCustomersByIndustry']);
     //future link replaces status and industry routes
     Route::get('/customers/{property}/{idProperty}/{vendorID}', [CustomerController::class, 'getCustomersByProperty']);
     Route::get('/prospects', [CustomerController::class, 'getAllProspects']);
+    Route::get('/just_customers', [CustomerController::class, 'indexJustCustomers']);
+
     //Post
     //Delete
     //Put
-    Route::put('/customerStatus/{id}/{status}', [CustomerController::class, 'updateStatus']);
-    Route::put('/change-vendor/{id}/{status}', [CustomerController::class, 'changeVendor']);
+    Route::put('/customer_status/{id}/{status}', [CustomerController::class, 'updateStatus']);
+    Route::put('/change_vendor/{id}/{status}', [CustomerController::class, 'changeVendor']);
     Route::put('/interests/{id}', [CustomerController::class, 'updateInterests']);
     Route::put('/customers/rejected/{id}', [CustomerController::class, 'prospectRejected']);
     //files
-    Route::post('/customerImage/{id}', [CustomerController::class, 'uploadImage']);
+    Route::post('/customer_image/{id}', [CustomerController::class, 'uploadImage']);
 
 
 
@@ -94,7 +97,7 @@ Route::group(['middleware' => ["auth:sanctum"]], function(){
     //DEPARTAMENTS Routes
     //Get
     Route::get('/departaments', [UserController::class, 'indexDepartament']);
-    Route::get('/publicDepartaments', [UserController::class, 'publicDepartament']);
+    Route::get('/public_departaments', [UserController::class, 'publicDepartament']);
 
     //PRODUCTS Routes
     //Get
@@ -113,6 +116,12 @@ Route::group(['middleware' => ["auth:sanctum"]], function(){
     Route::get('/promos', [PromosController::class, 'index']);
     Route::get('/ruleta', [PromosController::class, 'indexRuleta']);
     Route::put('/ruleta/{id}', [PromosController::class, 'setDelivered']);
+
+    //ORDERS
+    //Get
+    Route::get('/orders', [OrderController::class, 'index']);
+    Route::get('/orders/{id}', [OrderController::class, 'show']);
+    Route::post('/orders', [OrderController::class, 'store']);
 
     //LINK / Checklists Routes
     //GET
@@ -173,7 +182,6 @@ Route::group(['middleware' => ["auth:sanctum"]], function(){
     Route::get('/terminal', [PanelController::class, 'terminal']);
     Route::get('/checkemail/{id}', [PanelController::class, 'checkemail']);
     Route::get('/checkmessage/{id}', [PanelController::class, 'checkMessage']);
-
 });
 
 //Public routes

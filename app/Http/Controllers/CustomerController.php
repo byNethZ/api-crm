@@ -43,7 +43,7 @@ class CustomerController extends Controller
 
         $userAuth = auth()->user();
 
-        if($request->customer){
+        if ($request->customer) {
             $customerData = $request->customer;
             $isProspect = true;
             $customer = Customer::create([
@@ -68,7 +68,7 @@ class CustomerController extends Controller
             $customer = Customer::create($dataChanged->all());
         }
 
-        if($request->interests){
+        if ($request->interests) {
             $interestsJson = json_encode($request->interests);
 
             $interests = ProspectInterest::create([
@@ -87,15 +87,16 @@ class CustomerController extends Controller
         $industry = CustomerType::where('id', $customer->type_id)->first();
 
         $message = new WhatsAppChannel;
-        if(isset($request->customer)){
+        if (isset($request->customer)) {
             $message->notifySaveCustomer($userAuth, $customer, $industry, $request->interests, true);
         } else {
             $message->notifySaveCustomer($userAuth, $customer, $industry, null, false);
         }
 
-        if($customerData['field_2']){
+        if ($customerData['field_2']) {
             $userAssigned = User::find($customerData['vendor_id']);
-            $message->notifyAssignedCustomer($customer, $userAssigned, $industry, $request->interests);
+            $nameAssigner = auth()->user()->name;
+            $message->notifyAssignedCustomer($customer, $userAssigned, $industry, $request->interests, $nameAssigner);
         }
 
         return response()->json($data, $data['code']);
@@ -103,7 +104,35 @@ class CustomerController extends Controller
 
     public function index()
     {
-        $customers = Customer::orderBy('id', 'DESC')->select('vendor_id','status','phone','business','name','surname','address','email')->get();
+        $customers = Customer::orderBy('id', 'DESC')
+            ->select('vendor_id', 'status', 'phone', 'business', 'name', 'surname', 'address', 'email')
+            ->get();
+
+        $data = [
+            'code' => 200,
+            'status' => 'success',
+            'customers' => $customers
+        ];
+
+        return response()->json($data, $data['code']);
+    }
+
+    public function indexJustCustomers()
+    {
+        if ((auth()->user()->departament_id === 4 ||
+            auth()->user()->departament_alt_id === 4
+        ) && auth()->user()->role_id !== 1) {
+            $customers = Customer::where('status', 5)
+                ->where('vendor_id', auth()->user()->id)
+                ->orderBy('id', 'DESC')
+                ->select('id', 'vendor_id', 'status', 'phone', 'business', 'name', 'surname', 'address', 'state_id', 'zipcode', 'email')
+                ->get();
+        } else {
+            $customers = Customer::where('status', 5)
+                ->orderBy('id', 'DESC')
+                ->select('id', 'vendor_id', 'status', 'phone', 'business', 'name', 'surname', 'address', 'state_id', 'zipcode', 'email')
+                ->get();
+        }
 
         $data = [
             'code' => 200,
@@ -246,7 +275,8 @@ class CustomerController extends Controller
     }
 
     //This function will replace functions "getCustomerByStatus" and "getCustomersByIndustry" after modifying services in client
-    public function getCustomersByProperty($property, $idProperty, $vendorID){
+    public function getCustomersByProperty($property, $idProperty, $vendorID)
+    {
 
         if ($vendorID === '99') {
 
@@ -265,7 +295,8 @@ class CustomerController extends Controller
         return response()->json($data, $data['code']);
     }
 
-    public function getAllProspects(){
+    public function getAllProspects()
+    {
         $userAuth = auth()->user();
 
         if ($userAuth->role_id === 1 || $userAuth->id === 3) {
@@ -279,7 +310,7 @@ class CustomerController extends Controller
         } else {
             $id = 2;
 
-            if($userAuth->departament_id === 4 || $userAuth->departament_alt_id === 4){
+            if ($userAuth->departament_id === 4 || $userAuth->departament_alt_id === 4) {
                 $id = $userAuth->id;
             }
 
@@ -301,7 +332,8 @@ class CustomerController extends Controller
         return response()->json($data, $data['code']);
     }
 
-    public function updateStatus($id, $status){
+    public function updateStatus($id, $status)
+    {
         $userAuth = auth()->user();
 
         $customer = Customer::find($id);
@@ -320,7 +352,8 @@ class CustomerController extends Controller
         return $customerUpdated;
     }
 
-    public function changeVendor($id, $status, Request $request){
+    public function changeVendor($id, $status, Request $request)
+    {
 
         $customer = Customer::find($id);
         $customer->update([
@@ -336,31 +369,33 @@ class CustomerController extends Controller
         $interests = ProspectInterest::where('customer_id', '=', $customerUpdated->id)->first();
         $interestsJSON = null;
 
-        if($interests){
+        if ($interests) {
             $interestsJSON = json_decode($interests->interests);
         }
 
         $message = new WhatsAppChannel;
         $userAssigned = User::find($request->vendor_id);
+        $nameAssigner = auth()->user()->name;
 
-        $message->notifyAssignedCustomer($customerUpdated, $userAssigned, $industry, $interestsJSON);
+        $message->notifyAssignedCustomer($customerUpdated, $userAssigned, $industry, $interestsJSON, $nameAssigner);
 
         return $customerUpdated;
     }
 
-    public function uploadImage(Request $request, $id){
+    public function uploadImage(Request $request, $id)
+    {
         $customer = Customer::find($id);
         $image_name = 'default.jpg';
 
         $prevImage = $customer->image;
         $exists = false;
 
-        if($request->hasFile('image')){
-            $image_name = time().$request->file('image')->getClientOriginalName();
+        if ($request->hasFile('image')) {
+            $image_name = time() . $request->file('image')->getClientOriginalName();
             $fileName = $request->file('image')->storeAs('public/customers', $image_name);
 
-            if(File::exists('storage/customers/'.$customer->image)){
-                File::delete('storage/customers/'.$customer->image);
+            if (File::exists('storage/customers/' . $customer->image)) {
+                File::delete('storage/customers/' . $customer->image);
                 $exists = true;
             }
 
