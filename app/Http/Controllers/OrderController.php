@@ -58,7 +58,7 @@ class OrderController extends Controller
         });
 
         $validator->sometimes('projects.*.color', 'required|string', function ($input, $item) {
-            return $item->product_category_id === 1;
+            return $item->product_category_id === 1; //revisar tipo de variable (string o number)
         });
 
         if ($validator->fails()) {
