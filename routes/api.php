@@ -13,6 +13,7 @@ use App\Http\Controllers\PanelController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PromosController;
 use App\Http\Controllers\StatesController;
+use App\Http\Controllers\SurveyedUserController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\WebsiteController;
@@ -38,7 +39,7 @@ Route::post('/login', [UserController::class, 'login']);
 
 
 //Rutas de sistema
-Route::group(['middleware' => ["auth:sanctum"]], function(){
+Route::group(['middleware' => ["auth:sanctum"]], function () {
 
     //USER Routes
     //CRUD
@@ -68,7 +69,7 @@ Route::group(['middleware' => ["auth:sanctum"]], function(){
     Route::put('/customers/{id}', [CustomerController::class, 'update']);
     Route::delete('/customers/{id}', [CustomerController::class, 'destroy']);
     //Get
-    Route::get('/customersByVendor/{customerID}', [CustomerController::class, 'indexByVendor']);
+    Route::get('/customers_by_vendor/{customerID}', [CustomerController::class, 'indexByVendor']);
     // Route::get('/customers/status/{status}', [CustomerController::class, 'getCustomerByStatus']);
     // Route::get('/customers/industry/{industry}', [CustomerController::class, 'getCustomersByIndustry']);
     //future link replaces status and industry routes
@@ -173,7 +174,6 @@ Route::group(['middleware' => ["auth:sanctum"]], function(){
     Route::get('/terminal', [PanelController::class, 'terminal']);
     Route::get('/checkemail/{id}', [PanelController::class, 'checkemail']);
     Route::get('/checkmessage/{id}', [PanelController::class, 'checkMessage']);
-
 });
 
 //Public routes
@@ -205,3 +205,6 @@ Route::get('/contract-fotography', [FotographyController::class, 'index']);
 
 //foodbank
 Route::post('/foodbank', [FoodbankController::class, 'sendEmail']);
+
+//surveyed users
+Route::post('/surveyed-users', [SurveyedUserController::class, 'store']);
