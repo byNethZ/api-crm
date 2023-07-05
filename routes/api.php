@@ -14,6 +14,7 @@ use App\Http\Controllers\PanelController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PromosController;
 use App\Http\Controllers\StatesController;
+use App\Http\Controllers\SurveyedUserController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\WebsiteController;
@@ -213,3 +214,6 @@ Route::get('/contract-fotography', [FotographyController::class, 'index']);
 
 //foodbank
 Route::post('/foodbank', [FoodbankController::class, 'sendEmail']);
+
+//surveyed users
+Route::post('/surveyed-users', [SurveyedUserController::class, 'store']);
