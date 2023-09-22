@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AprobedEmailController;
+use App\Http\Controllers\AssistController;
 use App\Http\Controllers\CatalogueController;
 use App\Http\Controllers\CommentsController;
 use App\Http\Controllers\CustomerController;
@@ -178,6 +179,9 @@ Route::group(['middleware' => ["auth:sanctum"]], function () {
     //Send reports
     Route::get('/reports/{id}/{mode}', [PanelController::class, 'sendReports']);
 
+    //Asistencias
+    Route::get('/assist/{event}', [AssistController::class, 'index']);
+
     //Pruebas
     //terminal
     Route::get('/terminal', [PanelController::class, 'terminal']);
@@ -217,3 +221,6 @@ Route::post('/foodbank', [FoodbankController::class, 'sendEmail']);
 
 //surveyed users
 Route::post('/surveyed-users', [SurveyedUserController::class, 'store']);
+
+//Asistencias
+Route::post('/assist/{event}/{state}', [AssistController::class, 'store']);
